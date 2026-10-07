@@ -74,10 +74,18 @@ interface DepHistorico {
 }
 
 /** Arquivos anuais grandes vêm como {"dados": [...]}. */
+const jaMostrado = new Set<string>();
+
 async function arquivoAnual<T>(tipo: string, ano: number): Promise<T[]> {
   try {
     const json = await getJson<{ dados: T[] }>(`${ARQ}/${tipo}/json/${tipo}-${ano}.json`);
-    return json.dados ?? [];
+    const dados = json.dados ?? [];
+    // Mostra a estrutura uma vez por tipo de arquivo — ajuda a ajustar se a Câmara mudar os campos.
+    if (!jaMostrado.has(tipo) && dados.length) {
+      jaMostrado.add(tipo);
+      console.log(`  · ${tipo}-${ano}: ${dados.length} registros; exemplo: ${JSON.stringify(dados[0]).slice(0, 400)}`);
+    }
+    return dados;
   } catch (e) {
     console.warn(`  ! ${tipo}-${ano} indisponível: ${(e as Error).message}`);
     return [];
@@ -139,7 +147,15 @@ export async function coletarCamara(): Promise<ColetaCasa> {
     proposicaoObjeto?: string | null;
     ultimaApresentacaoProposicao_descricao?: string | null;
   };
-  type VotoArq = { idVotacao: string; voto: string; deputado_id: number; deputado_siglaPartido: string };
+  type VotoArq = {
+    idVotacao: string;
+    voto: string;
+    deputado_id?: number;
+    deputado_siglaPartido?: string | null;
+    deputado_?: { id?: number; siglaPartido?: string | null };
+  };
+  // O arquivo já veio com os campos do deputado "achatados" (deputado_id) e aninhados (deputado_.id).
+  const idDoVoto = (v: VotoArq) => v.deputado_id ?? v.deputado_?.id;
   type OrientArq = { idVotacao: string; siglaBancada: string; orientacao: string };
 
   const votacoesArq: VotacaoArq[] = [];
@@ -158,6 +174,15 @@ export async function coletarCamara(): Promise<ColetaCasa> {
     .filter((v) => v.siglaOrgao === "PLEN" && votosPorVotacao.has(v.id) && v.data >= INICIO_LEGISLATURA)
     .sort((a, b) => a.data.localeCompare(b.data));
 
+  const semId = votosArq.filter((v) => idDoVoto(v) == null).length;
+  if (votosArq.length && semId / votosArq.length > 0.5) {
+    throw new Error(`Formato inesperado em votacoesVotos: ${semId} de ${votosArq.length} votos sem id do deputado. Exemplo: ${JSON.stringify(votosArq[0])}`);
+  }
+  // Partido atual de cada deputado — usado quando o voto vem sem sigla.
+  const partidoAtual = new Map(detalhes.map((d) => [d.lista.id, d.det.ultimoStatus.siglaPartido || d.lista.siglaPartido]));
+  const partidoDoVoto = (v: VotoArq) =>
+    v.deputado_siglaPartido ?? v.deputado_?.siglaPartido ?? partidoAtual.get(Number(idDoVoto(v))) ?? "S.PART.";
+
   const votacoes: Votacao[] = [];
   const votosPorSlug: Record<string, VotoParlamentar[]> = {};
   const exercicioPorSlug = new Map(detalhes.map((d) => [slugDe(d.lista.id), d.hist.exercicio]));
@@ -165,6 +190,7 @@ export async function coletarCamara(): Promise<ColetaCasa> {
   for (const v of plenario) {
     const votos = votosPorVotacao.get(v.id) ?? [];
     const orientacoes = (orientPorVotacao.get(v.id) ?? [])
+      .filter((o) => o.siglaBancada)
       .map((o) => ({ bancada: o.siglaBancada, orientacao: mapearVoto(o.orientacao) }))
       .filter((o): o is { bancada: string; orientacao: VotoTipo | "liberado" } => o.orientacao !== null);
 
@@ -187,21 +213,24 @@ export async function coletarCamara(): Promise<ColetaCasa> {
     const govOrient = buscarOrientacao(orientacoes, "GOVERNO");
 
     for (const voto of votos) {
+      const idDep = idDoVoto(voto);
+      if (idDep == null) continue;
       const tipo = (mapearVoto(voto.voto) ?? "ausente") as VotoTipo;
-      const slug = slugDe(voto.deputado_id);
+      const slug = slugDe(idDep);
+      const partido = partidoDoVoto(voto);
       votacao.votos[slug] = tipo;
       if (tipo in votacao.placar) votacao.placar[tipo as keyof Votacao["placar"]]++;
-      const pp = placarPartido.get(voto.deputado_siglaPartido) ?? { sim: 0, nao: 0, outros: 0 };
+      const pp = placarPartido.get(partido) ?? { sim: 0, nao: 0, outros: 0 };
       if (tipo === "sim") pp.sim++;
       else if (tipo === "nao") pp.nao++;
       else pp.outros++;
-      placarPartido.set(voto.deputado_siglaPartido, pp);
+      placarPartido.set(partido, pp);
 
       (votosPorSlug[slug] ??= []).push({
         votacaoId: votacao.id,
         data: votacao.data,
         voto: tipo,
-        orientacaoPartido: buscarOrientacao(orientacoes, voto.deputado_siglaPartido),
+        orientacaoPartido: buscarOrientacao(orientacoes, partido),
         orientacaoGoverno: govOrient,
       });
     }

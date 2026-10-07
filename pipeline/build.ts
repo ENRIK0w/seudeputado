@@ -51,19 +51,21 @@ async function main() {
   };
 
   const municipios = await opcional("IBGE municípios", listarMunicipios);
+  let maisVotados: Record<string, { slug: string; votos: number; pct: number }[]> = {};
   if (municipios && !args.has("--sem-tse")) {
     const tse = await opcional("TSE", () => coletarTse(parlamentares, cpfPorSlug, indiceMunicipios(municipios)));
     if (tse) {
       ds.eleicaoMapas = tse.mapas;
+      maisVotados = tse.maisVotadosPorMunicipio;
       for (const p of parlamentares) p.eleicao = tse.resumos[p.slug] ?? null;
       fontes.push({ nome: "TSE — Dados Abertos", url: "https://dadosabertos.tse.jus.br", atualizadoEm: hoje });
-      ds.municipios = montarMunicipios(municipios, parlamentares, tse.maisVotadosPorMunicipio);
     }
-    const ufs = [...new Set(parlamentares.map((p) => p.uf))].filter((uf) => uf && uf !== "DF");
-    for (const uf of [...ufs, "DF"]) {
-      const geo = await opcional(`Malha ${uf}`, async () => malhaDaUf(uf));
-      if (geo) ds.malhas[uf] = geo;
-    }
+  }
+  // Municípios (emendas + mais votados) e malhas saem sempre, mesmo sem o TSE.
+  if (municipios) ds.municipios = montarMunicipios(municipios, parlamentares, maisVotados);
+  for (const uf of new Set(parlamentares.map((p) => p.uf).filter(Boolean))) {
+    const geo = await opcional(`Malha ${uf}`, async () => malhaDaUf(uf));
+    if (geo) ds.malhas[uf] = geo;
   }
 
   for (const p of parlamentares) p.metricas = calcularMetricas(p, votosPorSlug[p.slug] ?? []);

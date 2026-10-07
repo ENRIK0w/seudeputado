@@ -5,8 +5,8 @@ import iconv from "iconv-lite";
 import type { VotoTipo } from "../../src/lib/types";
 
 /** Remove acentos, caixa e pontuação: "José da Silva Jr." → "JOSE DA SILVA JR". */
-export function normalizarNome(s: string): string {
-  return s
+export function normalizarNome(s: string | null | undefined): string {
+  return (s ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase()
