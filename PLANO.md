@@ -73,8 +73,8 @@ primeira execução com dados reais · ⬜ a fazer
 
 ### Fase 1 — MVP
 - ✅ Plano e estrutura do projeto
-- 🔶 Pipeline Câmara: deputados, histórico de partidos, votações, votos, orientações, proposições, cota parlamentar
-- 🔶 Pipeline Senado: senadores, filiações, votações, autorias, cota parlamentar
+- ✅ Pipeline Câmara: deputados, histórico de partidos, votações, votos, orientações, proposições, cota parlamentar (validado com dados reais)
+- ✅ Pipeline Senado: senadores, filiações, votações, autorias, cota parlamentar (validado; conferir se vêm todas as votações)
 - ✅ Métricas: fidelidade partidária, alinhamento com o governo, participação nas votações
 - ✅ Home: busca, composição por partido (hemiciclo + Esquerda/Centro/Direita), últimas votações
 - ✅ Lista de parlamentares com filtros (casa, UF, partido, ordenação)

@@ -25,6 +25,23 @@ export function metricasVazias(): Metricas {
 const ALIAS_GOVERNO = new Set(["GOVERNO", "GOV", "LIDERANCA DO GOVERNO", "LID GOV"]);
 
 /**
+ * Abreviações que aparecem nos nomes de blocos e federações da Câmara
+ * ("Bl MdbPsdRepPode", "Fdr PsdbCidadania", "Fdr UniãoProgressista").
+ */
+const APELIDOS_PARTIDO: Record<string, string[]> = {
+  REPUBLICANOS: ["REP", "REPUB", "REPUBLICANOS"],
+  UNIAO: ["UNIAO", "UNI", "UB"],
+  PP: ["PP", "PROGRESSISTA", "PROGRESSISTAS"],
+  PODE: ["PODE", "POD", "PODEMOS"],
+  SOLIDARIEDADE: ["SOLIDARIEDADE", "SOLID", "SD"],
+  CIDADANIA: ["CIDADANIA", "CID"],
+  AVANTE: ["AVANTE", "AV"],
+  PCDOB: ["PCDOB"],
+  PSDB: ["PSDB"],
+  MDB: ["MDB"],
+};
+
+/**
  * Encontra a orientação de um partido (ou do governo) numa votação.
  * Na Câmara a orientação às vezes vem por bloco ("Bl UniãoPP..."): nesse caso
  * procuramos a sigla do partido entre as siglas que compõem o nome do bloco.
@@ -41,12 +58,13 @@ export function buscarOrientacao(orientacoes: OrientacaoBancada[], partido: stri
   if (exata) return valor(exata);
 
   const compacto = alvo.replace(/ /g, "");
+  const aceitos = new Set(APELIDOS_PARTIDO[compacto] ?? [compacto]);
   for (const o of orientacoes) {
     const b = o.bancada.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     if (!/^(bl|bloco|fdr|federa)/i.test(b)) continue;
     // "Bl UniãoPpPdt" → ["Bl","Uniao","Pp","Pdt"]; "Fdr PT-PCdoB-PV" → ["Fdr","PT","PCdoB","PV"]
     const partes = b.split(/[^A-Za-z]+|(?<=[a-z])(?=[A-Z][a-z])/).map((p) => p.toUpperCase());
-    if (partes.includes(compacto)) return valor(o);
+    if (partes.some((p) => aceitos.has(p))) return valor(o);
   }
   return null;
 }

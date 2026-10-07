@@ -13,6 +13,7 @@ import type {
   VotoParlamentar,
 } from "../src/lib/types";
 import { tituloVotacao } from "../src/lib/formato";
+import { compactarVotos } from "../src/lib/votosCompactos";
 
 export interface Dataset {
   parlamentares: Parlamentar[];
@@ -55,7 +56,7 @@ export async function gravarDataset(ds: Dataset) {
   for (const p of ordenados) {
     const votos = [...(ds.votosPorSlug[p.slug] ?? [])].sort((a, b) => b.data.localeCompare(a.data));
     await gravar(path.join(DATA, "parlamentares", `${p.slug}.json`), { ...p, votosRecentes: votos.slice(0, VOTOS_RECENTES) });
-    await gravar(path.join(PUB, "votos", `${p.slug}.json`), votos);
+    await gravar(path.join(PUB, "votos", `${p.slug}.json`), compactarVotos(p.casa, votos));
     if (ds.eleicaoMapas[p.slug]) await gravar(path.join(PUB, "eleicao", `${p.slug}.json`), ds.eleicaoMapas[p.slug]);
   }
 

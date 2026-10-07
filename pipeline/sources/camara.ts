@@ -167,6 +167,11 @@ export async function coletarCamara(): Promise<ColetaCasa> {
     acrescentar(orientArq, await arquivoAnual<OrientArq>("votacoesOrientacoes", ano));
   }
 
+  // Nomes de bancadas mais frequentes — para conferir a correspondência partido → bloco.
+  const freqBancadas = new Map<string, number>();
+  for (const o of orientArq) freqBancadas.set(o.siglaBancada, (freqBancadas.get(o.siglaBancada) ?? 0) + 1);
+  console.log(`  · bancadas: ${[...freqBancadas].sort((a, b) => b[1] - a[1]).slice(0, 50).map(([b, n]) => `${b} (${n})`).join(", ")}`);
+
   const votosPorVotacao = Map.groupBy(votosArq, (v) => v.idVotacao);
   const orientPorVotacao = Map.groupBy(orientArq, (o) => o.idVotacao);
 

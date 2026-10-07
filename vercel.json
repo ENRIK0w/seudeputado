@@ -1,4 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run dados:exemplo && next build"
+  "buildCommand": "next build",
+  "git": { "deploymentEnabled": false }
 }

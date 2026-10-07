@@ -40,15 +40,25 @@ Os downloads ficam em `.cache/` e são reaproveitados por ~20 h.
 | `src/app/` | páginas: início, perfil (`/p/[slug]`), votações, cidade, metodologia |
 | `src/components/` | hemiciclo, mapa eleitoral, mapa de votos, gráficos |
 
-## Ver o site na Vercel (dados de exemplo)
+## Publicação com dados reais (Vercel)
 
-1. Em vercel.com → **Add New… → Project**, importe `ENRIK0w/seudeputado`.
-2. Não mude nada e clique em **Deploy**. O `vercel.json` já gera os dados de exemplo
-   antes do build.
+A coleta roda no GitHub Actions e publica na Vercel já construído — a Vercel não
+faz build sozinha a cada push (`vercel.json` desliga o deploy por git).
 
-Para testar a coleta com dados oficiais sem publicar nada: **Actions → Testar coleta real →
-Run workflow**. O resumo da execução mostra o relatório de conferência, e os dados
-ficam disponíveis para download por 7 dias.
+| Workflow | Quando | O que faz |
+|---|---|---|
+| **Atualizar dados e publicar** | todo dia 03:17 + manual | coleta Câmara, Senado e emendas, confere (erro = não publica) e publica |
+| **Atualizar dados do TSE** | manual, após eleições | baixa o TSE e grava `dados-base/tse/` com um commit |
+| **Testar coleta real** | manual | roda a coleta e guarda dados e relatório, sem publicar |
 
-A publicação com dados reais (coleta diária no GitHub Actions) ainda depende da
-decisão sobre hospedagem e banco — veja PLANO.md.
+Configuração (uma vez):
+
+1. Na Vercel, crie um token em **Account Settings → Tokens**.
+2. No projeto da Vercel, em **Settings → General**, copie o **Project ID**; em
+   **Team/Account Settings → General**, copie o **Team ID** (ou User ID).
+3. No GitHub, em **Settings → Secrets and variables → Actions**, crie os segredos
+   `VERCEL_TOKEN`, `VERCEL_ORG_ID` (Team ID) e `VERCEL_PROJECT_ID`.
+4. Rode **Atualizar dados do TSE** uma vez e depois **Atualizar dados e publicar**.
+
+Mudanças de código também só entram no ar pelo workflow de publicação (rode-o
+manualmente depois de um merge).

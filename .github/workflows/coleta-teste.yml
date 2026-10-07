@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       modo:
-        description: "rapida = Câmara + Senado; completa = + emendas e TSE (bem mais demorada)"
+        description: "rapida = Câmara + Senado (TSE salvo); completa = + emendas e baixa o TSE de novo (demorada)"
         type: choice
         options: [rapida, completa]
         default: rapida
@@ -38,7 +38,7 @@ jobs:
         run: |
           set -o pipefail
           FLAGS=""
-          if [ "${{ inputs.modo }}" = "rapida" ]; then FLAGS="--sem-tse --sem-emendas"; fi
+          if [ "${{ inputs.modo }}" = "rapida" ]; then FLAGS="--sem-emendas"; else FLAGS="--tse"; fi
           npm run dados -- $FLAGS 2>&1 | tee coleta.log
 
       - name: Conferir resultados

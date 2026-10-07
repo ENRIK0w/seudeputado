@@ -1,0 +1,60 @@
+name: Atualizar dados do TSE
+
+# Rodar depois de cada eleição (ou quando entrarem novos suplentes): baixa os
+# resultados por município, candidaturas e bens do TSE, cruza com os parlamentares
+# atuais e grava o resultado em dados-base/tse/ com um commit nesta branch.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  tse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: .cache
+          key: tse-${{ github.run_id }}
+          restore-keys: |
+            tse-
+            coleta-completa-
+
+      - name: Coletar TSE
+        run: |
+          set -o pipefail
+          npm run dados -- --tse --sem-emendas 2>&1 | tee coleta.log
+          test -f dados-base/tse/resumos.json
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .cache
+          key: tse-${{ github.run_id }}
+
+      - name: Gravar no repositório
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dados-base/tse
+          if git diff --cached --quiet; then echo "Sem mudanças no TSE"; exit 0; fi
+          git commit -m "Atualizar dados do TSE (dados-base/tse)"
+          git push
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tse
+          retention-days: 7
+          path: coleta.log

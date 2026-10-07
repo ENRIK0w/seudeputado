@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { urlDados } from "@/lib/caminho";
 import { COR_VOTO, data, ROTULO_VOTO } from "@/lib/formato";
 import type { VotoParlamentar, VotoTipo } from "@/lib/types";
+import { expandirVotos, type VotosCompactos } from "@/lib/votosCompactos";
 
 type Indice = Record<string, { d: string; t: string }>;
 type Filtro = "todos" | "contraPartido" | "contraGoverno" | "ausente";
@@ -47,13 +48,12 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
   const [foco, setFoco] = useState<VotoParlamentar | null>(null);
 
   useEffect(() => {
-    fetch(urlDados(`votos/${slug}.json`))
-      .then((r) => r.json())
-      .then(setVotos)
-      .catch(() => {});
-    fetch(urlDados("votacoes-indice.json"))
-      .then((r) => r.json())
-      .then(setIndice)
+    // O histórico vem compacto; a data de cada voto sai do índice de votações.
+    Promise.all([fetch(urlDados(`votos/${slug}.json`)).then((r) => r.json()), fetch(urlDados("votacoes-indice.json")).then((r) => r.json())])
+      .then(([compactos, idx]: [VotosCompactos, Indice]) => {
+        setIndice(idx);
+        setVotos(expandirVotos(compactos, (id) => idx[id]?.d));
+      })
       .catch(() => {});
   }, [slug]);
 
