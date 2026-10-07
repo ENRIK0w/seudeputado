@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Abas } from "@/components/Abas";
+import { AgendaSemana } from "@/components/AgendaSemana";
 import { BuscaRapida } from "@/components/BuscaRapida";
 import { BarraEspectro, Hemiciclo, LegendaPartidos } from "@/components/Hemiciclo";
 import { Card, CabecalhoCard, LinkSeta } from "@/components/ui";
@@ -17,7 +18,7 @@ export default function Inicio() {
 
   return (
     <Pagina className="grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-      <section className="lg:col-span-2 lg:pb-4">
+      <section className="lg:pt-6 lg:pb-4">
         <div className="rotulo">Câmara dos Deputados · Senado Federal</div>
         <h1 className="display mt-4 max-w-[17ch] text-ink">
           Quem te representa em Brasília, <em>voto a voto.</em>
@@ -30,6 +31,8 @@ export default function Inicio() {
           <BuscaRapida />
         </div>
       </section>
+
+      <AgendaSemana />
 
       <Card className="self-start">
         <CabecalhoCard numero="01" titulo="Composição" />
