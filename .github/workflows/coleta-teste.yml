@@ -25,7 +25,8 @@ jobs:
           cache: npm
       - run: npm ci
 
-      - uses: actions/cache@v4
+      # Downloads ficam em cache mesmo quando a coleta falha, para a próxima tentativa ser rápida.
+      - uses: actions/cache/restore@v4
         with:
           path: .cache
           key: coleta-${{ inputs.modo }}-${{ github.run_id }}
@@ -35,6 +36,7 @@ jobs:
 
       - name: Coletar dados oficiais
         run: |
+          set -o pipefail
           FLAGS=""
           if [ "${{ inputs.modo }}" = "rapida" ]; then FLAGS="--sem-tse --sem-emendas"; fi
           npm run dados -- $FLAGS 2>&1 | tee coleta.log
@@ -51,6 +53,12 @@ jobs:
         run: |
           npx next typegen
           npm run build
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .cache
+          key: coleta-${{ inputs.modo }}-${{ github.run_id }}
 
       - uses: actions/upload-artifact@v4
         if: always()

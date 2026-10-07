@@ -3,7 +3,7 @@
 // listas que viram objeto quando têm um item só (por isso `arr` e `campo`).
 import type { Parlamentar, PeriodoPartido, ProposicaoResumo, Votacao, VotoParlamentar, VotoTipo } from "../../src/lib/types";
 import { download, emParalelo, getJson, HttpError } from "../lib/http";
-import { anosDaLegislatura, arr, campo, dataISO, lerCsv, normalizarNome, numeroBR } from "../lib/util";
+import { acrescentar, anosDaLegislatura, arr, campo, dataISO, lerCsv, normalizarNome, numeroBR } from "../lib/util";
 import { metricasVazias, type ColetaCasa } from "./comum";
 import { agregarGastos, type Despesa } from "./gastos";
 
@@ -151,7 +151,7 @@ export async function coletarSenado(): Promise<ColetaCasa> {
   const anos = anosDaLegislatura();
   let brutos: VotoBruto[] = [];
   try {
-    for (const ano of anos) brutos.push(...(await votacoesDoAno(ano)));
+    for (const ano of anos) acrescentar(brutos, await votacoesDoAno(ano));
     if (brutos.length === 0) throw new Error("vazio");
   } catch (e) {
     console.warn(`  ! endpoint /votacao falhou (${(e as Error).message}); usando /senador/{cod}/votacoes`);
@@ -163,7 +163,7 @@ export async function coletarSenado(): Promise<ColetaCasa> {
           return [];
         }),
       );
-      brutos.push(...porSenador.flat());
+      acrescentar(brutos, porSenador.flat());
     }
   }
   brutos = brutos.filter((b) => b.data >= INICIO_LEGISLATURA);

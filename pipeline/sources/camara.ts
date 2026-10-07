@@ -8,7 +8,7 @@ import type {
   VotoTipo,
 } from "../../src/lib/types";
 import { download, emParalelo, getJson } from "../lib/http";
-import { anosDaLegislatura, dataISO, lerCsv, lerZip, mapearVoto, normalizarNome, numeroBR, somenteDigitos } from "../lib/util";
+import { acrescentar, anosDaLegislatura, dataISO, lerCsv, lerZip, mapearVoto, normalizarNome, numeroBR, somenteDigitos } from "../lib/util";
 import { agregarGastos, type Despesa } from "./gastos";
 import { buscarOrientacao, metricasVazias, type ColetaCasa } from "./comum";
 
@@ -146,9 +146,9 @@ export async function coletarCamara(): Promise<ColetaCasa> {
   const votosArq: VotoArq[] = [];
   const orientArq: OrientArq[] = [];
   for (const ano of anos) {
-    votacoesArq.push(...(await arquivoAnual<VotacaoArq>("votacoes", ano)));
-    votosArq.push(...(await arquivoAnual<VotoArq>("votacoesVotos", ano)));
-    orientArq.push(...(await arquivoAnual<OrientArq>("votacoesOrientacoes", ano)));
+    acrescentar(votacoesArq, await arquivoAnual<VotacaoArq>("votacoes", ano));
+    acrescentar(votosArq, await arquivoAnual<VotoArq>("votacoesVotos", ano));
+    acrescentar(orientArq, await arquivoAnual<OrientArq>("votacoesOrientacoes", ano));
   }
 
   const votosPorVotacao = Map.groupBy(votosArq, (v) => v.idVotacao);
@@ -241,7 +241,7 @@ export async function coletarCamara(): Promise<ColetaCasa> {
   const autores: AutorArq[] = [];
   for (const ano of anos) {
     for (const p of await arquivoAnual<PropArq>("proposicoes", ano)) if (TIPOS_PROPOSICAO.has(p.siglaTipo)) props.set(p.id, p);
-    autores.push(...(await arquivoAnual<AutorArq>("proposicoesAutores", ano)));
+    acrescentar(autores, await arquivoAnual<AutorArq>("proposicoesAutores", ano));
   }
   const propsPorSlug: Record<string, ProposicaoResumo[]> = {};
   for (const a of autores) {

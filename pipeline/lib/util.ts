@@ -92,3 +92,9 @@ export function anosDaLegislatura(inicio = 2023): number[] {
   for (let a = inicio; a <= Math.min(atual, inicio + 3); a++) anos.push(a);
   return anos;
 }
+
+/** Acrescenta `itens` em `destino` sem `push(...itens)`, que estoura a pilha com arrays de centenas de milhares. */
+export function acrescentar<T>(destino: T[], itens: Iterable<T>): T[] {
+  for (const item of itens) destino.push(item);
+  return destino;
+}
