@@ -1,0 +1,65 @@
+name: Testar coleta real
+
+# Roda o pipeline com as fontes oficiais, confere os resultados e guarda tudo
+# como artefato por 7 dias. Não publica nada.
+on:
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "rapida = Câmara + Senado; completa = + emendas e TSE (bem mais demorada)"
+        type: choice
+        options: [rapida, completa]
+        default: rapida
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: coleta-${{ inputs.modo }}-${{ github.run_id }}
+          restore-keys: |
+            coleta-${{ inputs.modo }}-
+            coleta-
+
+      - name: Coletar dados oficiais
+        run: |
+          FLAGS=""
+          if [ "${{ inputs.modo }}" = "rapida" ]; then FLAGS="--sem-tse --sem-emendas"; fi
+          npm run dados -- $FLAGS 2>&1 | tee coleta.log
+
+      - name: Conferir resultados
+        if: always()
+        run: |
+          npx tsx pipeline/relatorio.ts relatorio.md || STATUS=$?
+          cat relatorio.md >> "$GITHUB_STEP_SUMMARY"
+          exit ${STATUS:-0}
+
+      - name: Gerar o site com os dados reais
+        if: success()
+        run: |
+          npx next typegen
+          npm run build
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coleta-${{ inputs.modo }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            coleta.log
+            relatorio.md
+            data/
+            public/data/

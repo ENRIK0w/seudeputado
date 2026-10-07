@@ -46,5 +46,9 @@ Os downloads ficam em `.cache/` e são reaproveitados por ~20 h.
 2. Não mude nada e clique em **Deploy**. O `vercel.json` já gera os dados de exemplo
    antes do build.
 
+Para testar a coleta com dados oficiais sem publicar nada: **Actions → Testar coleta real →
+Run workflow**. O resumo da execução mostra o relatório de conferência, e os dados
+ficam disponíveis para download por 7 dias.
+
 A publicação com dados reais (coleta diária no GitHub Actions) ainda depende da
 decisão sobre hospedagem e banco — veja PLANO.md.
