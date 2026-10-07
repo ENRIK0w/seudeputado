@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Navegacao } from "@/components/Navegacao";
 import { Revelador, SCRIPT_ANIMACAO } from "@/components/Revelador";
+import { TransicaoPagina } from "@/components/TransicaoPagina";
 import { obterMeta } from "@/lib/dados";
 import { data } from "@/lib/formato";
 import "./globals.css";
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         )}
         <div className="mx-auto w-full max-w-5xl px-4">
-          <header className="flex items-center justify-between gap-4 pt-5 pb-4" style={{ viewTransitionName: "site-header" }}>
+          <header className="flex items-center justify-between gap-4 pt-5 pb-4">
             <Link href="/" className="leading-none">
               <span className="titulo block text-[26px] text-ink">Seu Deputado</span>
               <span className="mt-1 block text-[13px] text-muted">dossiê aberto do Congresso</span>
@@ -46,10 +47,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </svg>
             </Link>
           </header>
-          <div className="sticky top-0 z-20 -mx-4 bg-bg/90 px-4 py-2 backdrop-blur" style={{ viewTransitionName: "site-nav" }}>
+          <div className="sticky top-0 z-20 -mx-4 bg-bg/90 px-4 py-2 backdrop-blur">
             <Navegacao />
           </div>
-          <main className="py-4">{children}</main>
+          <main className="py-4">
+            <TransicaoPagina>{children}</TransicaoPagina>
+          </main>
           <footer className="mt-10 border-t border-line py-8 text-sm text-muted">
             <p>
               Dados públicos da Câmara, do Senado, do TSE e do Portal da Transparência. Atualizado em {data(meta.geradoEm)}.{" "}

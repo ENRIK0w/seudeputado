@@ -4,6 +4,7 @@
 import type { Parlamentar, PeriodoPartido, ProposicaoResumo, Votacao, VotoParlamentar, VotoTipo } from "../../src/lib/types";
 import { download, emParalelo, getJson, HttpError } from "../lib/http";
 import { acrescentar, anosDaLegislatura, arr, campo, dataISO, lerCsv, normalizarNome, numeroBR } from "../lib/util";
+import { limparDescricao } from "../../src/lib/formato";
 import { metricasVazias, type ColetaCasa } from "./comum";
 import { agregarGastos, type Despesa } from "./gastos";
 
@@ -199,7 +200,7 @@ export async function coletarSenado(): Promise<ColetaCasa> {
       id: `senado-${cod}`,
       casa: "senado",
       data: b0.data,
-      descricao: b0.descricao,
+      descricao: limparDescricao(b0.descricao),
       proposicao: b0.materia,
       ementa: b0.ementa,
       aprovada: b0.resultado ? /aprovad/i.test(b0.resultado) : null,

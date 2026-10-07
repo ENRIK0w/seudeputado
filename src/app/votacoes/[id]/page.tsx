@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { CabecalhoCard, Card } from "@/components/ui";
 import { VotoAVoto, type Votante } from "@/components/VotoAVoto";
 import { indiceParlamentares, obterVotacao } from "@/lib/dados";
-import { COR_VOTO, data, numero, ROTULO_VOTO } from "@/lib/formato";
+import { COR_VOTO, data, limparDescricao, numero, ROTULO_VOTO } from "@/lib/formato";
 import { corPartido } from "@/lib/partidos";
 import type { VotoTipo } from "@/lib/types";
 import { Contador } from "@/components/Contador";
@@ -19,7 +19,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/votacoes/[id]">): Promise<Metadata> {
   const v = obterVotacao((await params).id);
   if (!v) return {};
-  return { title: `${v.proposicao ?? "Votação"} — ${data(v.data)}`, description: v.descricao };
+  return { title: `${v.proposicao ?? "Votação"} — ${data(v.data)}`, description: v.ementa ?? limparDescricao(v.descricao) };
 }
 
 const ORDEM: VotoTipo[] = ["sim", "nao", "abstencao", "obstrucao", "art17"];
@@ -42,8 +42,13 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
           {v.aprovada != null && <span className={v.aprovada ? "text-sim" : "text-nao"}>● {v.aprovada ? "Aprovada" : "Rejeitada"}</span>}
         </div>
         {v.proposicao && <p className="mt-3 text-sm font-medium text-ink-2">{v.proposicao}</p>}
-        <h1 className="titulo mt-1 text-[28px] leading-tight text-ink">{v.descricao}</h1>
-        {v.ementa && <p className="mt-2 text-ink-2">{v.ementa}</p>}
+        <h1 className="titulo mt-1 text-[28px] leading-tight text-ink">{limparDescricao(v.descricao)}</h1>
+        {v.ementa && (
+          <div className="mt-4 rounded-2xl bg-card-2 px-4 py-3">
+            <p className="text-xs font-medium tracking-wide text-muted uppercase">Do que se trata{v.proposicao ? ` · ${v.proposicao}` : ""}</p>
+            <p className="mt-1 text-[15px] leading-relaxed text-ink">{v.ementa}</p>
+          </div>
+        )}
 
         <div className="mt-6 flex items-end justify-between">
           <div>

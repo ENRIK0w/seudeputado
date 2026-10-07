@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 type Formato = "numero" | "pct" | "pct0" | "reais" | "reaisCompacto";
 
@@ -20,6 +20,11 @@ export function Contador({ valor, formato = "numero", duracao = 1100 }: { valor:
   const ref = useRef<HTMLSpanElement>(null);
   const [atual, setAtual] = useState<number | null>(valor);
 
+  // Antes da primeira pintura após hidratar: zera (o CSS mantém escondido até entrar na tela).
+  useLayoutEffect(() => {
+    if (valor != null && document.documentElement.hasAttribute("data-anim") && !ref.current?.hasAttribute("data-visivel")) setAtual(0);
+  }, [valor]);
+
   useEffect(() => {
     if (valor == null || !document.documentElement.hasAttribute("data-anim")) return;
     const el = ref.current!;
@@ -33,7 +38,6 @@ export function Contador({ valor, formato = "numero", duracao = 1100 }: { valor:
         setAtual(valor * (1 - Math.pow(1 - p, 4))); // ease-out quart
         if (p < 1) raf = requestAnimationFrame(passo);
       };
-      setAtual(0);
       raf = requestAnimationFrame(passo);
     });
     io.observe(el);
@@ -44,7 +48,7 @@ export function Contador({ valor, formato = "numero", duracao = 1100 }: { valor:
   }, [valor, duracao]);
 
   return (
-    <span ref={ref} className="tabular-nums">
+    <span ref={ref} className="contador tabular-nums" data-animar>
       {atual == null ? "—" : fmt[formato](atual)}
     </span>
   );

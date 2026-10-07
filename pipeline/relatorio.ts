@@ -41,6 +41,8 @@ for (const casa of ["camara", "senado"] as const) {
   checar(comp && comp.partidos.length >= 8 ? "ok" : "aviso", `${nome}: partidos`, comp?.partidos.map((p) => `${p.partido} ${p.cadeiras}`).join(", ") ?? "—");
   checar(vts.length >= 50 ? "ok" : "erro", `${nome}: votações nominais`, `${vts.length} (de ${vts.at(-1)?.data ?? "—"} a ${vts[0]?.data ?? "—"})`);
 
+  const comEmenta = vts.filter((v) => v.ementa).length;
+  checar(comEmenta / (vts.length || 1) > 0.7 ? "ok" : "aviso", `${nome}: votações com "do que se trata"`, `${comEmenta}/${vts.length}`);
   const semPlacar = vts.filter((v) => v.placar.sim + v.placar.nao === 0).length;
   checar(semPlacar === 0 ? "ok" : "aviso", `${nome}: votações sem Sim/Não`, `${semPlacar}`);
 

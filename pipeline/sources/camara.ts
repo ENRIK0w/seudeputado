@@ -10,6 +10,7 @@ import type {
 import { download, emParalelo, getJson } from "../lib/http";
 import { acrescentar, anosDaLegislatura, dataISO, lerCsv, lerZip, mapearVoto, normalizarNome, numeroBR, somenteDigitos } from "../lib/util";
 import { agregarGastos, type Despesa } from "./gastos";
+import { limparDescricao } from "../../src/lib/formato";
 import { buscarOrientacao, metricasVazias, type ColetaCasa } from "./comum";
 
 const API = "https://dadosabertos.camara.leg.br/api/v2";
@@ -157,14 +158,25 @@ export async function coletarCamara(): Promise<ColetaCasa> {
   // O arquivo já veio com os campos do deputado "achatados" (deputado_id) e aninhados (deputado_.id).
   const idDoVoto = (v: VotoArq) => v.deputado_id ?? v.deputado_?.id;
   type OrientArq = { idVotacao: string; siglaBancada: string; orientacao: string };
+  // O que foi votado: a proposição (com ementa) ligada a cada votação.
+  type ObjetoArq = {
+    idVotacao: string;
+    proposicao_siglaTipo?: string;
+    proposicao_numero?: number | string;
+    proposicao_ano?: number | string;
+    proposicao_ementa?: string;
+    proposicao_?: { siglaTipo?: string; numero?: number | string; ano?: number | string; ementa?: string };
+  };
 
   const votacoesArq: VotacaoArq[] = [];
   const votosArq: VotoArq[] = [];
   const orientArq: OrientArq[] = [];
+  const objetosArq: ObjetoArq[] = [];
   for (const ano of anos) {
     acrescentar(votacoesArq, await arquivoAnual<VotacaoArq>("votacoes", ano));
     acrescentar(votosArq, await arquivoAnual<VotoArq>("votacoesVotos", ano));
     acrescentar(orientArq, await arquivoAnual<OrientArq>("votacoesOrientacoes", ano));
+    acrescentar(objetosArq, await arquivoAnual<ObjetoArq>("votacoesObjetos", ano));
   }
 
   // Nomes de bancadas mais frequentes — para conferir a correspondência partido → bloco.
@@ -174,6 +186,18 @@ export async function coletarCamara(): Promise<ColetaCasa> {
 
   const votosPorVotacao = Map.groupBy(votosArq, (v) => v.idVotacao);
   const orientPorVotacao = Map.groupBy(orientArq, (o) => o.idVotacao);
+  // Primeiro objeto com ementa de cada votação (preferindo PL, PEC etc. a requerimentos)
+  const objetoPorVotacao = new Map<string, { sigla: string; ementa: string }>();
+  for (const o of objetosArq) {
+    const tipo = o.proposicao_siglaTipo ?? o.proposicao_?.siglaTipo;
+    const ementa = o.proposicao_ementa ?? o.proposicao_?.ementa;
+    if (!tipo || !ementa) continue;
+    const atual = objetoPorVotacao.get(o.idVotacao);
+    if (atual && (TIPOS_PROPOSICAO.has(atual.sigla.split(" ")[0]) || !TIPOS_PROPOSICAO.has(tipo))) continue;
+    const numero = o.proposicao_numero ?? o.proposicao_?.numero;
+    const ano = o.proposicao_ano ?? o.proposicao_?.ano;
+    objetoPorVotacao.set(o.idVotacao, { sigla: `${tipo} ${numero}/${ano}`, ementa });
+  }
 
   const plenario = votacoesArq
     .filter((v) => v.siglaOrgao === "PLEN" && votosPorVotacao.has(v.id) && v.data >= INICIO_LEGISLATURA)
@@ -203,9 +227,9 @@ export async function coletarCamara(): Promise<ColetaCasa> {
       id: `camara-${v.id}`,
       casa: "camara",
       data: dataISO(v.data)!,
-      descricao: v.descricao,
-      proposicao: v.proposicaoObjeto ?? null,
-      ementa: v.ultimaApresentacaoProposicao_descricao ?? null,
+      descricao: limparDescricao(v.descricao),
+      proposicao: objetoPorVotacao.get(v.id)?.sigla ?? v.proposicaoObjeto ?? null,
+      ementa: objetoPorVotacao.get(v.id)?.ementa ?? null,
       aprovada: v.aprovacao == null ? null : v.aprovacao === 1,
       placar: { sim: 0, nao: 0, abstencao: 0, obstrucao: 0, ausente: 0 },
       orientacoes,
@@ -277,6 +301,15 @@ export async function coletarCamara(): Promise<ColetaCasa> {
     for (const p of await arquivoAnual<PropArq>("proposicoes", ano)) if (TIPOS_PROPOSICAO.has(p.siglaTipo)) props.set(p.id, p);
     acrescentar(autores, await arquivoAnual<AutorArq>("proposicoesAutores", ano));
   }
+  // Votações sem objeto no arquivo: tenta achar a ementa pela sigla ("PL 1234/2024")
+  const ementaPorSigla = new Map([...props.values()].map((p) => [`${p.siglaTipo} ${p.numero}/${p.ano}`, p.ementa]));
+  let semEmenta = 0;
+  for (const v of votacoes) {
+    if (!v.ementa && v.proposicao) v.ementa = ementaPorSigla.get(v.proposicao.replace(/\s+n[ºo°]\s*/i, " ").trim()) ?? null;
+    if (!v.ementa) semEmenta++;
+  }
+  console.log(`  · votações sem ementa do projeto: ${semEmenta} de ${votacoes.length}`);
+
   const propsPorSlug: Record<string, ProposicaoResumo[]> = {};
   for (const a of autores) {
     const p = props.get(a.idProposicao);

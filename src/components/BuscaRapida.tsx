@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { urlDados } from "@/lib/caminho";
 import type { ItemBusca } from "@/lib/types";
-import { Compartilhado } from "./Pagina";
 import { Avatar } from "./ui";
 
 const norm = (s: string) =>
@@ -54,13 +53,9 @@ export function BuscaRapida({ autoFocus = false }: { autoFocus?: boolean }) {
           {resultados.map((r) => (
             <li key={r.slug}>
               <Link href={`/p/${r.slug}/`} className="pressionavel flex items-center gap-3 px-4 py-3 hover:bg-card-2">
-                <Compartilhado nome={`avatar-${r.slug}`}>
-                  <Avatar nome={r.nome} foto={r.foto} partido={r.partido} tamanho={34} />
-                </Compartilhado>
+                <Avatar nome={r.nome} foto={r.foto} partido={r.partido} tamanho={34} />
                 <span className="min-w-0 flex-1">
-                  <Compartilhado nome={`nome-${r.slug}`}>
-                    <span className="block w-fit max-w-full truncate text-ink">{r.nome}</span>
-                  </Compartilhado>
+                  <span className="block truncate text-ink">{r.nome}</span>
                   <span className="text-sm text-muted">
                     {r.casa === "camara" ? "Deputado(a)" : "Senador(a)"} · {r.partido} · {r.uf}
                     {!r.emExercicio && " · fora do exercício"}

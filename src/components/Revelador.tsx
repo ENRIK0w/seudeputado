@@ -11,6 +11,11 @@ import { useEffect } from "react";
 export function Revelador() {
   const path = usePathname();
   useEffect(() => {
+    // A cascata dos cards é só para a primeira carga; nas navegações quem anima é a transição de página.
+    const t = setTimeout(() => delete document.documentElement.dataset.primeiraCarga, 1500);
+    return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
     const io = new IntersectionObserver(
       (entradas) => {
         for (const e of entradas) {
@@ -34,4 +39,4 @@ export function Revelador() {
 }
 
 /** Roda antes da primeira pintura: liga as animações (se o usuário não pediu menos movimento). */
-export const SCRIPT_ANIMACAO = `try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.dataset.anim=''}catch(e){}`;
+export const SCRIPT_ANIMACAO = `try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){var h=document.documentElement;h.dataset.anim='';h.dataset.primeiraCarga=''}}catch(e){}`;

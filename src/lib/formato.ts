@@ -38,9 +38,22 @@ export function idade(nascimento: string | null) {
   return i;
 }
 
+/**
+ * A descrição oficial da Câmara termina com o placar ("… Sim: 120; não: 261;
+ * abstenção: 1; total: 382."), que o site já mostra na barra — removemos.
+ */
+export function limparDescricao(s: string) {
+  return s
+    .replace(/\s*\bSim:\s*\d+\s*;?[\s\S]*$/i, "")
+    .replace(/[\s.;,]+$/, "")
+    .concat(".")
+    .replace(/^\.$/, "");
+}
+
 /** "PL 1234/2024 · Votação do texto-base…" */
 export function tituloVotacao(v: { proposicao: string | null; descricao: string }) {
-  const desc = v.descricao.length > 110 ? `${v.descricao.slice(0, 108)}…` : v.descricao;
+  const limpa = limparDescricao(v.descricao);
+  const desc = limpa.length > 110 ? `${limpa.slice(0, 108)}…` : limpa;
   return v.proposicao ? `${v.proposicao} · ${desc}` : desc;
 }
 

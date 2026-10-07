@@ -10,7 +10,7 @@ import { Avatar, Barra, CabecalhoCard, Card, Metrica, Partido } from "@/componen
 import { indiceVotacoes, obterParlamentar } from "@/lib/dados";
 import { cargo, idade, numero, pct, reaisCompacto, tituloVotacao } from "@/lib/formato";
 import { Contador } from "@/components/Contador";
-import { Compartilhado, Pagina } from "@/components/Pagina";
+import { Pagina } from "@/components/Pagina";
 
 // Gerada na primeira visita e guardada em cache por um dia (ou até a próxima atualização de dados).
 export const revalidate = 86400;
@@ -69,17 +69,13 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
     <Pagina className="grid gap-4 lg:grid-cols-2">
       <Card className="lg:col-span-2">
         <div className="flex items-start gap-4">
-          <Compartilhado nome={`avatar-${p.slug}`}>
-            <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={72} />
-          </Compartilhado>
+          <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={72} />
           <div className="min-w-0 flex-1">
             <p className="text-sm text-muted">
               {cargo(p.casa, p.sexo)} · {p.uf}
               {!p.emExercicio && <span className="ml-2 rounded-full bg-card-2 px-2 py-0.5 text-xs text-ink-2">fora do exercício</span>}
             </p>
-            <Compartilhado nome={`nome-${p.slug}`}>
-              <h1 className="titulo mt-0.5 w-fit text-[34px] leading-tight text-ink">{p.nome}</h1>
-            </Compartilhado>
+            <h1 className="titulo mt-0.5 text-[34px] leading-tight text-ink">{p.nome}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
               <Partido sigla={p.partido} />
               {anos && <span className="text-sm text-muted">{anos} anos</span>}

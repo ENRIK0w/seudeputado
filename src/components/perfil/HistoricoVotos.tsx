@@ -46,6 +46,8 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [limite, setLimite] = useState(15);
   const [foco, setFoco] = useState<VotoParlamentar | null>(null);
+  // A grade e a contagem só aparecem com o histórico completo (evita mostrar 30 e trocar por 1.000).
+  const [completo, setCompleto] = useState(false);
 
   useEffect(() => {
     // O histórico vem compacto; a data de cada voto sai do índice de votações.
@@ -53,8 +55,9 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
       .then(([compactos, idx]: [VotosCompactos, Indice]) => {
         setIndice(idx);
         setVotos(expandirVotos(compactos, (id) => idx[id]?.d));
+        setCompleto(true);
       })
-      .catch(() => {});
+      .catch(() => setCompleto(true));
   }, [slug]);
 
   const cronologico = useMemo(() => [...votos].reverse(), [votos]);
@@ -69,6 +72,8 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
 
   return (
     <div>
+      {completo ? (
+        <>
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-2">
         {(["sim", "nao", "abstencao", "obstrucao", "ausente"] as VotoTipo[])
           .filter((t) => contagem[t])
@@ -81,8 +86,7 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
       </div>
 
       <div className="relative mt-3">
-        {/* key: quando o histórico completo chega, a grade remonta e anima de novo */}
-        <div key={votos.length} className="flex flex-wrap gap-[3px]" data-animar role="img" aria-label={`Mapa de ${votos.length} votações`} onMouseLeave={() => setFoco(null)}>
+        <div className="flex flex-wrap gap-[3px]" data-animar role="img" aria-label={`Mapa de ${votos.length} votações`} onMouseLeave={() => setFoco(null)}>
           {cronologico.map((v, i) => {
             const destaque = filtro !== "todos" && passa(v, filtro);
             return (
@@ -115,6 +119,14 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
         </div>
       </div>
 
+        </>
+      ) : (
+        <div aria-hidden className="space-y-3">
+          <div className="h-4 w-2/3 animate-pulse rounded-full bg-card-2" />
+          <div className="h-24 animate-pulse rounded-xl bg-card-2" />
+        </div>
+      )}
+
       <div className="mt-2 flex flex-wrap gap-2">
         {FILTROS.map((f) => (
           <button
@@ -125,7 +137,7 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
             }}
             className={`rounded-full border px-3 py-1 text-sm ${filtro === f.id ? "border-ink bg-ink text-bg" : "border-line text-ink-2 hover:text-ink"}`}
           >
-            {f.rotulo} <span className="opacity-70">{votos.filter((v) => passa(v, f.id)).length}</span>
+            {f.rotulo} {completo && <span className="opacity-70">{votos.filter((v) => passa(v, f.id)).length}</span>}
           </button>
         ))}
       </div>

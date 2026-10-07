@@ -139,82 +139,41 @@ button.pilula[data-ativa="true"]:not(.com-indicador) {
   --expo: cubic-bezier(0.16, 1, 0.3, 1); /* ease-out expo */
 }
 
-/* ---- Transição entre páginas (View Transitions) ---- */
-::view-transition {
-  pointer-events: none;
-}
-::view-transition-old(.pagina) {
-  animation: 180ms ease-in both pagina-sai;
-}
-::view-transition-new(.pagina) {
-  animation: 520ms var(--mola) 60ms both pagina-entra;
-}
-@keyframes pagina-sai {
-  to {
-    opacity: 0;
-    transform: scale(0.985);
-    filter: blur(2px);
-  }
+/* ---- Entrada da página ao navegar (TransicaoPagina) ---- */
+.pagina-entra {
+  animation: pagina-entra 420ms var(--mola) both;
 }
 @keyframes pagina-entra {
   from {
     opacity: 0;
-    transform: scale(1.02) translateY(8px);
-    filter: blur(6px);
+    transform: scale(0.985) translateY(8px);
   }
 }
-/* Foto e nome "voam" da lista para o perfil */
-::view-transition-group(.morph) {
-  animation-duration: 480ms;
-  animation-timing-function: var(--mola);
+
+/* Pílula ativa do menu troca suavemente */
+.nav-pilula {
+  transition:
+    background-color 300ms var(--mola),
+    box-shadow 300ms var(--mola),
+    color 300ms ease;
 }
-::view-transition-image-pair(.morph) {
-  animation-name: morph-blur;
-}
-@keyframes morph-blur {
-  40% {
-    filter: blur(2px);
-  }
-}
-/* Cabeçalho parado enquanto o conteúdo troca; a pílula ativa desliza */
-::view-transition-group(site-header) {
-  animation: none;
-  z-index: 100;
-}
-::view-transition-old(site-header) {
-  display: none;
-}
-::view-transition-new(site-header) {
-  animation: none;
-}
-::view-transition-group(site-nav) {
-  animation: none;
-  z-index: 100;
-}
-::view-transition-old(site-nav) {
-  display: none;
-}
-::view-transition-new(site-nav) {
-  animation: none;
-}
-::view-transition-group(nav-ativa) {
-  animation-duration: 420ms;
-  animation-timing-function: var(--mola);
-  z-index: 101;
+.nav-pilula[data-ativa="true"] {
+  background: var(--card-2);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 /* ---- Entrada dos cards em cascata ---- */
-.cascata > * {
+html[data-primeira-carga] .cascata > * {
   animation: surgir 700ms var(--expo) both;
   animation-delay: calc(var(--n, 0) * 70ms);
 }
-.cascata > :nth-child(2) { --n: 1; }
-.cascata > :nth-child(3) { --n: 2; }
-.cascata > :nth-child(4) { --n: 3; }
-.cascata > :nth-child(5) { --n: 4; }
-.cascata > :nth-child(6) { --n: 5; }
-.cascata > :nth-child(7) { --n: 6; }
-.cascata > :nth-child(n + 8) { --n: 7; }
+html[data-primeira-carga] .cascata > :nth-child(2) { --n: 1; }
+html[data-primeira-carga] .cascata > :nth-child(3) { --n: 2; }
+html[data-primeira-carga] .cascata > :nth-child(4) { --n: 3; }
+html[data-primeira-carga] .cascata > :nth-child(5) { --n: 4; }
+html[data-primeira-carga] .cascata > :nth-child(6) { --n: 5; }
+html[data-primeira-carga] .cascata > :nth-child(7) { --n: 6; }
+html[data-primeira-carga] .cascata > :nth-child(n + 8) { --n: 7; }
 @keyframes surgir {
   from {
     opacity: 0;
@@ -330,10 +289,7 @@ html[data-anim] [data-animar]:not([data-visivel]) .anim-subir {
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
-  *::after,
-  ::view-transition-old(*),
-  ::view-transition-new(*),
-  ::view-transition-group(*) {
+  *::after {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
     transition-duration: 0s !important;
@@ -360,4 +316,12 @@ html[data-anim] [data-animar]:not([data-visivel]) .anim-coluna {
 /* Quando a própria barra é o alvo observado */
 html[data-anim] .anim-barra[data-animar]:not([data-visivel]) {
   transform: scaleX(0);
+}
+
+/* Contadores: escondidos até entrarem na tela, aí aparecem já contando do zero */
+html[data-anim] .contador[data-animar]:not([data-visivel]) {
+  opacity: 0;
+}
+.contador {
+  transition: opacity 250ms ease-out;
 }

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { pct, reaisCompacto, UFS } from "@/lib/formato";
 import type { ParlamentarResumo } from "@/lib/types";
-import { Compartilhado } from "./Pagina";
 import { Avatar, Partido } from "./ui";
 
 type Ordem = "nome" | "participacao" | "fidelidade" | "governo" | "gasto" | "emendas";
@@ -123,13 +122,9 @@ export function ListaParlamentares({ todos }: { todos: ParlamentarResumo[] }) {
         {lista.slice(0, limite).map((p) => (
           <li key={p.slug}>
             <Link href={`/p/${p.slug}/`} className="pressionavel flex items-center gap-3 px-4 py-3 hover:bg-card-2">
-              <Compartilhado nome={`avatar-${p.slug}`}>
-                <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={40} />
-              </Compartilhado>
+              <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={40} />
               <span className="min-w-0 flex-1">
-                <Compartilhado nome={`nome-${p.slug}`}>
-                  <span className="block w-fit max-w-full truncate text-ink">{p.nome}</span>
-                </Compartilhado>
+                <span className="block truncate text-ink">{p.nome}</span>
                 <span className="flex items-center gap-2">
                   <Partido sigla={p.partido} uf={p.uf} />
                   <span className="text-xs text-muted">{p.casa === "camara" ? "Câmara" : "Senado"}</span>

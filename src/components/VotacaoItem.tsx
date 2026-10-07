@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { data } from "@/lib/formato";
+import { data, limparDescricao } from "@/lib/formato";
 import type { VotacaoResumo } from "@/lib/types";
 
 export function VotacaoItem({ v }: { v: VotacaoResumo }) {
@@ -18,7 +18,8 @@ export function VotacaoItem({ v }: { v: VotacaoResumo }) {
             <span className={v.aprovada ? "text-sim" : "text-nao"}>{v.aprovada ? "● Aprovada" : "● Rejeitada"}</span>
           )}
         </div>
-        <p className="mt-1 line-clamp-2 text-[15px] leading-snug text-ink">{v.descricao}</p>
+        <p className="mt-1 line-clamp-2 text-[15px] leading-snug text-ink">{limparDescricao(v.descricao)}</p>
+        {v.ementa && <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-muted">{v.ementa}</p>}
         <div className="mt-2 flex items-center gap-3 text-xs text-ink-2">
           <span>
             Sim <strong className="text-ink">{v.placar.sim}</strong>
