@@ -1,6 +1,7 @@
 import { execFileSync, spawn } from "node:child_process";
 import { parse } from "csv-parse";
 import iconv from "iconv-lite";
+import { limparCampo } from "./util";
 
 /** Lista as entradas de um ZIP (usa o `unzip` do sistema — disponível nos runners do GitHub). */
 export function entradasZip(zip: string): string[] {
@@ -26,8 +27,11 @@ export async function* linhasCsvZip(
       relax_quotes: true,
       relax_column_count: true,
       skip_empty_lines: true,
-      trim: true,
     }),
   );
-  for await (const linha of parser) yield linha as Record<string, string>;
+  for await (const linha of parser) {
+    const l = linha as Record<string, string>;
+    for (const k in l) l[k] = limparCampo(l[k]);
+    yield l;
+  }
 }

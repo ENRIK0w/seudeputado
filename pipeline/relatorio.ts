@@ -1,6 +1,6 @@
 // Confere os dados gerados pelo pipeline e escreve um relatório em Markdown.
 // Uso: npx tsx pipeline/relatorio.ts [arquivo-de-saida.md]
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Composicao, Meta, Parlamentar, ParlamentarResumo, VotacaoResumo } from "../src/lib/types";
 
@@ -69,6 +69,34 @@ for (const casa of ["camara", "senado"] as const) {
   const comEleicao = ativos.filter((p) => p.eleicao).length;
   checar(comEleicao / (ativos.length || 1) > 0.8 ? "ok" : "aviso", `${nome}: cruzados com o TSE`, `${comEleicao}/${ativos.length}`);
 }
+
+// Votações por ano e partidos sem fidelidade calculada (para achar lacunas)
+for (const casa of ["camara", "senado"] as const) {
+  const porAno = new Map<string, number>();
+  for (const v of votacoes.filter((x) => x.casa === casa)) porAno.set(v.data.slice(0, 4), (porAno.get(v.data.slice(0, 4)) ?? 0) + 1);
+  checar("ok", `${casa === "camara" ? "Câmara" : "Senado"}: votações por ano`, [...porAno].sort().map(([a, n]) => `${a}: ${n}`).join(", "));
+  const sem = new Map<string, number>();
+  for (const p of perfis.filter((x) => x.casa === casa && x.emExercicio && x.metricas.fidelidadePartidaria == null)) sem.set(p.partido, (sem.get(p.partido) ?? 0) + 1);
+  if (sem.size) checar("aviso", `${casa === "camara" ? "Câmara" : "Senado"}: sem fidelidade, por partido`, [...sem].sort((a, b) => b[1] - a[1]).map(([p, n]) => `${p} ${n}`).join(", "));
+}
+
+// Tamanho dos dados — decide se cabem no deploy da Vercel (pacote de função ≤ 250 MB)
+function tamanho(dir: string): number {
+  if (!existsSync(dir)) return 0;
+  if (!statSync(dir).isDirectory()) return statSync(dir).size;
+  let total = 0;
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    total += e.isDirectory() ? tamanho(p) : statSync(p).size;
+  }
+  return total;
+}
+const mb = (b: number) => `${(b / 1024 / 1024).toFixed(1)} MB`;
+const subpastas = (dir: string) =>
+  existsSync(dir) ? readdirSync(dir).map((n) => `${n} ${mb(tamanho(path.join(dir, n)))}`).join(", ") : "—";
+const tamData = tamanho(DATA);
+checar(tamData < 150 * 1024 * 1024 ? "ok" : "aviso", "Tamanho de data/ (vai no pacote das funções)", `${mb(tamData)} — ${subpastas(DATA)}`);
+checar("ok", "Tamanho de public/data/ (arquivos estáticos)", `${mb(tamanho(PUB))} — ${subpastas(PUB)}`);
 
 const munDir = path.join(PUB, "municipios");
 const nMun = existsSync(munDir) ? readdirSync(munDir).length : 0;

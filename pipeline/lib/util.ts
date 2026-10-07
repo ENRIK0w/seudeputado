@@ -49,18 +49,25 @@ export function mapearVoto(v: string | null | undefined): VotoTipo | "liberado" 
   return null;
 }
 
+/** Apara espaços e aspas que sobraram de campos malformados ("FULANO" ;). */
+export function limparCampo(v: string | undefined): string {
+  return (v ?? "").trim().replace(/^"([\s\S]*)"$/, "$1").trim();
+}
+
 export function lerCsv(buf: Buffer | Uint8Array, opts: { encoding?: "latin1" | "utf8"; delimiter?: string; pularLinhas?: number } = {}) {
   let text = iconv.decode(Buffer.from(buf), opts.encoding ?? "utf8");
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
   if (opts.pularLinhas) text = text.split("\n").slice(opts.pularLinhas).join("\n");
-  return parse(text, {
-    columns: true,
+  const linhas = parse(text, {
+    columns: (h: string[]) => h.map((c) => c.trim()),
     delimiter: opts.delimiter ?? ";",
     skip_empty_lines: true,
     relax_quotes: true,
     relax_column_count: true,
-    trim: true,
+    // Sem `trim` no parser: o CSV do Senado tem aspas seguidas de espaço, o que o trim rejeita.
   }) as Record<string, string>[];
+  for (const l of linhas) for (const k in l) l[k] = limparCampo(l[k]);
+  return linhas;
 }
 
 /** Abre um ZIP e devolve só as entradas cujo nome passa no filtro. */
