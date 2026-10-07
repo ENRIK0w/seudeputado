@@ -8,11 +8,12 @@ import type {
   MunicipioDados,
   Parlamentar,
   ParlamentarResumo,
+  Projeto,
   Votacao,
   VotacaoResumo,
   VotoParlamentar,
 } from "../src/lib/types";
-import { tituloVotacao } from "../src/lib/formato";
+import { chaveProposicao, tituloVotacao } from "../src/lib/formato";
 import { compactarVotos } from "../src/lib/votosCompactos";
 
 export interface Dataset {
@@ -46,9 +47,45 @@ function resumoVotacao(v: Votacao): VotacaoResumo {
   return r;
 }
 
+/** Grupo do arquivo de um projeto: os projetos ficam em 100 arquivos (data/projetos/00..99.json). */
+export const grupoProjeto = (id: string) => id.replace(/\D/g, "").slice(-2).padStart(2, "0");
+
+/** Junta as autorias de todos os parlamentares por projeto e liga cada um às votações dele. */
+function montarProjetos(parlamentares: Parlamentar[], votacoes: Votacao[]) {
+  const votacoesPorChave = new Map<string, string[]>();
+  for (const v of [...votacoes].sort((a, b) => b.data.localeCompare(a.data))) {
+    const k = chaveProposicao(v.proposicao);
+    if (k) votacoesPorChave.set(k, [...(votacoesPorChave.get(k) ?? []), v.id]);
+  }
+  const projetos = new Map<string, Projeto>();
+  for (const p of parlamentares) {
+    for (const pr of p.proposicoes) {
+      const votacoesDoProjeto = votacoesPorChave.get(chaveProposicao(pr.sigla) ?? "") ?? [];
+      pr.votacoes = votacoesDoProjeto.length;
+      const { principal, votacoes: _n, ...dados } = pr; // eslint-disable-line @typescript-eslint/no-unused-vars
+      const proj = projetos.get(pr.id) ?? { ...dados, casa: p.casa, autores: [], votacoes: votacoesDoProjeto };
+      proj.autores.push({ slug: p.slug, principal });
+      projetos.set(pr.id, proj);
+    }
+  }
+  // Autor principal primeiro, depois os coautores
+  for (const proj of projetos.values()) proj.autores.sort((a, b) => Number(b.principal) - Number(a.principal));
+  return projetos;
+}
+
 export async function gravarDataset(ds: Dataset) {
   await rm(DATA, { recursive: true, force: true });
   await rm(PUB, { recursive: true, force: true });
+
+  // Antes de gravar os parlamentares: marca em cada projeto quantas votações ele teve.
+  const projetos = montarProjetos(ds.parlamentares, ds.votacoes);
+  const grupos = new Map<string, Record<string, Projeto>>();
+  for (const [id, proj] of projetos) {
+    const g = grupos.get(grupoProjeto(id)) ?? {};
+    g[id] = proj;
+    grupos.set(grupoProjeto(id), g);
+  }
+  for (const [g, lista] of grupos) await gravar(path.join(DATA, "projetos", `${g}.json`), lista);
 
   const ordenados = [...ds.parlamentares].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
   await gravar(path.join(DATA, "parlamentares.json"), ordenados.map(resumo));
@@ -100,6 +137,8 @@ export async function gravarDataset(ds: Dataset) {
     Object.values(ds.municipios).map((m) => [m.ibge, m.nome, m.uf]),
   );
 
+  const votados = [...projetos.values()].filter((p) => p.votacoes.length).length;
+  console.log(`✓ ${projetos.size} projetos (${votados} com votação em plenário)`);
   console.log(
     `✓ ${ordenados.length} parlamentares, ${votacoes.length} votações, ${Object.keys(ds.municipios).length} municípios gravados`,
   );

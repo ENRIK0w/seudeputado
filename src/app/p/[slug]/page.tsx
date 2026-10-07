@@ -108,10 +108,10 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-5 border-t border-line pt-5">
-          <Metrica rotulo="Projetos" valor={<Contador valor={m.proposicoesApresentadas} />} detalhe="como autor" />
-          <Metrica rotulo="Cota" valor={<Contador valor={m.gastoCotaTotal} formato="reaisCompacto" />} detalhe="na legislatura" />
-          <Metrica rotulo="Emendas" valor={<Contador valor={m.emendasPagasTotal} formato="reaisCompacto" />} detalhe="pagas" />
-          <Metrica rotulo="Votos" valor={<Contador valor={p.eleicao?.votosTotais ?? null} />} detalhe={p.eleicao ? `eleição de ${p.eleicao.ano}` : undefined} />
+          <Metrica tamanho={26} rotulo="Projetos" valor={<Contador valor={m.proposicoesApresentadas} />} detalhe="como autor" />
+          <Metrica tamanho={26} rotulo="Cota" valor={<Contador valor={m.gastoCotaTotal} formato="reaisCompacto" />} detalhe="na legislatura" />
+          <Metrica tamanho={26} rotulo="Emendas" valor={<Contador valor={m.emendasPagasTotal} formato="reaisCompacto" />} detalhe="pagas" />
+          <Metrica tamanho={26} rotulo="Votos" valor={<Contador valor={p.eleicao?.votosTotais ?? null} />} detalhe={p.eleicao ? `eleição de ${p.eleicao.ano}` : undefined} />
         </div>
 
         <p className="mt-6 text-xs text-muted">

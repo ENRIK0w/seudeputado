@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { reais, reaisCompacto } from "@/lib/formato";
 
 type Formato = "numero" | "pct" | "pct0" | "reais" | "reaisCompacto";
 
@@ -8,8 +9,8 @@ const fmt: Record<Formato, (n: number) => string> = {
   numero: (n) => Math.round(n).toLocaleString("pt-BR"),
   pct: (n) => `${(n * 100).toFixed(1).replace(".", ",")}%`,
   pct0: (n) => `${Math.round(n * 100)}%`,
-  reais: (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }),
-  reaisCompacto: (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }),
+  reais,
+  reaisCompacto,
 };
 
 /**

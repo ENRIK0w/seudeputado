@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { data } from "@/lib/formato";
 import type { ProposicaoResumo } from "@/lib/types";
@@ -11,15 +12,21 @@ type Filtro = "todos" | "autor" | "coautor";
 function Item({ p }: { p: ProposicaoResumo }) {
   return (
     <li className="py-2.5">
-      <a href={p.url} target="_blank" rel="noreferrer" className="group block">
+      <Link href={`/projetos/${p.id}/`} className="group block">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
           <span className="font-medium text-ink-2">{p.sigla}</span>
           <span>{data(p.data)}</span>
-          <span className={`rounded-full px-2 ${p.principal ? "bg-accent/15 text-accent" : "border border-line"}`}>{p.principal ? "autor" : "coautor"}</span>
+          <span className={`rounded-md px-1.5 ${p.principal ? "bg-accent/15 text-accent" : "border border-line"}`}>{p.principal ? "autor" : "coautor"}</span>
           {p.situacao && <span className="truncate">· {p.situacao}</span>}
+          {!!p.votacoes && (
+            <span className="inline-flex items-center gap-1 text-ink-2">
+              <span className="size-1.5 rounded-full bg-accent" aria-hidden />
+              {p.votacoes === 1 ? "1 votação" : `${p.votacoes} votações`}
+            </span>
+          )}
         </div>
         <p className="mt-0.5 line-clamp-2 text-[14px] leading-snug text-ink group-hover:underline group-hover:underline-offset-4">{p.ementa}</p>
-      </a>
+      </Link>
     </li>
   );
 }

@@ -1,13 +1,24 @@
 import type { VotoTipo } from "./types";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
-const brlCompacto = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 });
 const inteiro = new Intl.NumberFormat("pt-BR");
 
 export const reais = (n: number) => brl.format(n);
 /** Com centavos: "R$ 23.456,78" */
 export const reaisExato = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-export const reaisCompacto = (n: number) => brlCompacto.format(n);
+/**
+ * "R$ 725,2 mil", "R$ 5 mi". Feito à mão: o Intl com notation "compact" dá resultados
+ * diferentes no Node e no navegador ("5,0 mi" × "5 mi"), o que quebra a hidratação.
+ */
+export function reaisCompacto(n: number) {
+  const unidades: [number, string][] = [[1e3, " mil"], [1e6, " mi"], [1e9, " bi"]];
+  if (Math.abs(n) < 1e3) return brl.format(n);
+  let i = Math.min(Math.floor(Math.log10(Math.abs(n)) / 3) - 1, 2);
+  let v = Math.round((Math.abs(n) / unidades[i][0]) * 10) / 10;
+  // 999.960 arredonda para "1.000 mil": sobe para "1 mi"
+  if (v >= 1000 && i < 2) v = Math.round((Math.abs(n) / unidades[++i][0]) * 10) / 10;
+  return `${n < 0 ? "-" : ""}R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}${unidades[i][1]}`;
+}
 export const numero = (n: number) => inteiro.format(n);
 
 export function pct(n: number | null | undefined, casas = 1) {
@@ -80,5 +91,11 @@ export const COR_VOTO: Record<VotoTipo, string> = {
 export const NOME_CASA = { camara: "Câmara", senado: "Senado" } as const;
 export const CARGO = { camara: ["Deputado federal", "Deputada federal"], senado: ["Senador", "Senadora"] } as const;
 export const cargo = (casa: "camara" | "senado", sexo: "M" | "F" | null) => CARGO[casa][sexo === "F" ? 1 : 0];
+
+/** "PL nº 1.234/2024" e "PL 1234/2024" → "PL 1234/2024": compara projetos citados de formas diferentes. */
+export function chaveProposicao(sigla: string | null | undefined): string | null {
+  const m = sigla?.toUpperCase().match(/\b([A-Z]{2,5})\s*(?:N[ºO°.]*\s*)?([\d.]+)\s*\/\s*(\d{4})/);
+  return m ? `${m[1]} ${Number(m[2].replace(/\./g, ""))}/${m[3]}` : null;
+}
 
 export const UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];

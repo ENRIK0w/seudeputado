@@ -3,7 +3,7 @@ import "server-only";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { cache } from "react";
-import type { Composicao, Meta, Parlamentar, ParlamentarResumo, Votacao, VotacaoResumo } from "./types";
+import type { Composicao, Meta, Parlamentar, ParlamentarResumo, Projeto, Votacao, VotacaoResumo } from "./types";
 
 const DATA = path.join(process.cwd(), "data");
 
@@ -25,6 +25,13 @@ export const listarVotacoes = cache(() => ler<VotacaoResumo[]>("votacoes.json"))
 export const obterVotacao = cache((id: string) =>
   seguro(id) && existsSync(path.join(DATA, "votacoes", `${id}.json`)) ? ler<Votacao>(`votacoes/${id}.json`) : null,
 );
+// Projetos agrupados em 100 arquivos pelo fim do id (mesma regra de pipeline/output.ts).
+const grupoProjeto = cache((g: string) => {
+  const file = path.join(DATA, "projetos", `${g}.json`);
+  return existsSync(file) ? ler<Record<string, Projeto>>(`projetos/${g}.json`) : {};
+});
+export const obterProjeto = (id: string): Projeto | null =>
+  seguro(id) ? (grupoProjeto(id.replace(/\D/g, "").slice(-2).padStart(2, "0"))[id] ?? null) : null;
 export const obterComposicao = cache(() => ler<Composicao[]>("composicao.json"));
 export const obterMeta = cache(() => ler<Meta>("meta.json"));
 

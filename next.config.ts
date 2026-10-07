@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/p/[slug]": ["./data/parlamentares/**/*", "./data/*.json"],
     "/votacoes/[id]": ["./data/votacoes/**/*", "./data/*.json"],
+    "/projetos/[id]": ["./data/projetos/**/*", "./data/*.json"],
     "/*": ["./data/*.json"],
   },
   turbopack: {

@@ -64,11 +64,13 @@ export function Barra({ valor, cor = "var(--accent)", altura = 4, indice = 0 }: 
   );
 }
 
-export function Metrica({ rotulo, valor, detalhe }: { rotulo: string; valor: ReactNode; detalhe?: ReactNode }) {
+export function Metrica({ rotulo, valor, detalhe, tamanho = 30 }: { rotulo: string; valor: ReactNode; detalhe?: ReactNode; tamanho?: number }) {
   return (
     <div>
       <div className="rotulo">{rotulo}</div>
-      <div className="numero mt-2 text-[30px] leading-none text-ink">{valor}</div>
+      <div className="numero mt-2 leading-none whitespace-nowrap text-ink" style={{ fontSize: tamanho }}>
+        {valor}
+      </div>
       {detalhe && <div className="mt-1.5 text-xs text-muted">{detalhe}</div>}
     </div>
   );

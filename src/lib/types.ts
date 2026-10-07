@@ -87,6 +87,22 @@ export interface ProposicaoResumo {
   url: string;
   /** true quando é o primeiro autor (proponente). */
   principal: boolean;
+  /** Quantas votações nominais em plenário trataram do projeto. */
+  votacoes?: number;
+}
+
+/** Página do projeto no site: dados, quem assina e as votações em plenário. */
+export interface Projeto {
+  id: string;
+  casa: Casa;
+  sigla: string;
+  ementa: string;
+  data: string;
+  situacao: string | null;
+  url: string;
+  autores: { slug: string; principal: boolean }[];
+  /** ids das votações nominais sobre o projeto, da mais recente à mais antiga. */
+  votacoes: string[];
 }
 
 export interface EmendaResumo {
