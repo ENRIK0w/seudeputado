@@ -55,13 +55,13 @@ export default function Inicio() {
         <Card>
           <CabecalhoCard titulo="O que chegou na sua cidade?" />
           <p className="text-ink-2">
-            Digite seu CEP e veja quais parlamentares mandaram emendas para o seu município e quem foi mais votado lá.
+            Busque o seu município e veja quais parlamentares mandaram emendas para lá e quem foi mais votado.
           </p>
           <Link
             href="/cidade/"
             className="mt-4 inline-flex rounded-full bg-ink px-5 py-2.5 text-[15px] font-medium text-bg hover:opacity-90"
           >
-            Buscar pelo CEP
+            Buscar minha cidade
           </Link>
         </Card>
       </div>

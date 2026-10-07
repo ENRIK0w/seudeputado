@@ -1,4 +1,6 @@
 // IBGE — municípios e malhas para os mapas. https://servicodados.ibge.gov.br/api/docs
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { getJson } from "../lib/http";
 import { normalizarNome } from "../lib/util";
 
@@ -15,15 +17,22 @@ interface MunicipioApi {
   "regiao-imediata"?: { "regiao-intermediaria": { UF: { sigla: string } } } | null;
 }
 
+/** Lista atual do IBGE; se a API falhar, usa a lista de dados-base/ (sem os municípios criados após 2013). */
 export async function listarMunicipios(): Promise<Municipio[]> {
-  const lista = await getJson<MunicipioApi[]>("https://servicodados.ibge.gov.br/api/v1/localidades/municipios", {
-    maxIdadeHoras: 24 * 30,
-  });
-  return lista.map((m) => ({
-    ibge: String(m.id),
-    nome: m.nome,
-    uf: m.microrregiao?.mesorregiao.UF.sigla ?? m["regiao-imediata"]?.["regiao-intermediaria"].UF.sigla ?? "",
-  }));
+  try {
+    const lista = await getJson<MunicipioApi[]>("https://servicodados.ibge.gov.br/api/v1/localidades/municipios", {
+      maxIdadeHoras: 24 * 30,
+    });
+    return lista.map((m) => ({
+      ibge: String(m.id),
+      nome: m.nome,
+      uf: m.microrregiao?.mesorregiao.UF.sigla ?? m["regiao-imediata"]?.["regiao-intermediaria"].UF.sigla ?? "",
+    }));
+  } catch (e) {
+    console.warn(`  ! API de municípios do IBGE indisponível (${(e as Error).message}); usando dados-base/`);
+    const base = JSON.parse(readFileSync(path.join("dados-base", "municipios.json"), "utf8")) as [string, string, string][];
+    return base.map(([ibge, nome, uf]) => ({ ibge, nome, uf }));
+  }
 }
 
 /** Grafias do TSE que diferem do IBGE (nome normalizado + UF). */
@@ -54,10 +63,10 @@ export function indiceMunicipios(municipios: Municipio[]) {
   };
 }
 
-/** Malha municipal de uma UF em GeoJSON (propriedade `codarea` = código IBGE). */
-export async function malhaDaUf(uf: string): Promise<unknown> {
-  return getJson(
-    `https://servicodados.ibge.gov.br/api/v3/malhas/estados/${uf}?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio`,
-    { maxIdadeHoras: 24 * 90 },
-  );
+/**
+ * Malha municipal simplificada de uma UF (GeoJSON com `codarea` e `nome`), versionada
+ * em dados-base/ — gerada por scripts/gerar-dados-base.sh a partir da malha do IBGE.
+ */
+export function malhaDaUf(uf: string): unknown {
+  return JSON.parse(readFileSync(path.join("dados-base", "malhas", `${uf}.json`), "utf8"));
 }

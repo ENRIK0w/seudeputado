@@ -1,6 +1,6 @@
 "use client";
 
-import { geoIdentity, geoPath } from "d3-geo";
+import { geoArea, geoMercator, geoPath } from "d3-geo";
 import { scaleSequentialSqrt } from "d3-scale";
 import { interpolateRgb } from "d3-interpolate";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
@@ -10,8 +10,23 @@ import { numero, pct } from "@/lib/formato";
 import type { EleicaoMapa } from "@/lib/types";
 
 type Props = { codarea: string; nome?: string };
+
+/**
+ * O d3-geo espera anéis externos no sentido horário; GeoJSON padrão (RFC 7946, IBGE,
+ * mapshaper) usa anti-horário — aí o polígono vira "o globo inteiro menos o município".
+ * Se a área passa de meio globo, invertemos os anéis.
+ */
+function orientarParaD3(f: Feature<Geometry, Props>): Feature<Geometry, Props> {
+  if (geoArea(f) <= 2 * Math.PI) return f;
+  const g = f.geometry;
+  if (g.type === "Polygon") return { ...f, geometry: { ...g, coordinates: g.coordinates.map((r) => [...r].reverse()) } };
+  if (g.type === "MultiPolygon")
+    return { ...f, geometry: { ...g, coordinates: g.coordinates.map((p) => p.map((r) => [...r].reverse())) } };
+  return f;
+}
+// Área máxima do desenho; a altura final segue o formato do estado.
 const L = 360;
-const A = 300;
+const A_MAX = 400;
 
 /**
  * Mapa de calor eleitoral: % dos votos válidos para o cargo que o parlamentar
@@ -28,29 +43,32 @@ export function MapaEleitoral({ slug, uf }: { slug: string; uf: string }) {
     Promise.all([fetch(urlDados(`malhas/${uf}.json`)), fetch(urlDados(`eleicao/${slug}.json`))])
       .then(async ([g, m]) => {
         if (!g.ok || !m.ok) throw new Error();
-        setGeo(await g.json());
+        const bruto = (await g.json()) as FeatureCollection<Geometry, Props>;
+        setGeo({ ...bruto, features: bruto.features.map(orientarParaD3) });
         setMapa(await m.json());
       })
       .catch(() => setErro(true));
   }, [slug, uf]);
 
-  const { caminhos, escala, max } = useMemo(() => {
-    if (!geo || !mapa) return { caminhos: [], escala: null, max: 0 };
-    const proj = geoIdentity().reflectY(true).fitSize([L, A], geo);
+  const { caminhos, escala, max, altura } = useMemo(() => {
+    if (!geo || !mapa) return { caminhos: [], escala: null, max: 0, altura: 0 };
+    const proj = geoMercator().fitSize([L, A_MAX], geo);
     const path = geoPath(proj);
+    const [[, y0], [, y1]] = path.bounds(geo);
+    proj.translate([proj.translate()[0], proj.translate()[1] - y0]);
     const max = Math.max(...Object.values(mapa.municipios).map((m) => m.pct), 0.0001);
     const escala = scaleSequentialSqrt(interpolateRgb("#1d2238", "#9db4ff")).domain([0, max]);
-    return { caminhos: geo.features.map((f) => ({ f, d: path(f) ?? "" })), escala, max };
+    return { caminhos: geo.features.map((f) => ({ f, d: path(f) ?? "" })), escala, max, altura: Math.ceil(y1 - y0) };
   }, [geo, mapa]);
 
   if (erro) return <p className="rounded-xl bg-card-2 px-4 py-6 text-center text-sm text-muted">Mapa eleitoral indisponível para este parlamentar.</p>;
-  if (!escala || !mapa) return <div className="aspect-[6/5] animate-pulse rounded-xl bg-card-2" />;
+  if (!escala || !mapa) return <div className="aspect-square animate-pulse rounded-xl bg-card-2" />;
 
   const dadosFoco = foco ? mapa.municipios[foco.f.properties.codarea] : null;
 
   return (
     <figure className="relative">
-      <svg viewBox={`0 0 ${L} ${A}`} className="w-full" role="img" aria-label={`Votos por município em ${uf}, eleição de ${mapa.ano}`} onMouseLeave={() => setFoco(null)}>
+      <svg viewBox={`0 0 ${L} ${altura}`} className="w-full" role="img" aria-label={`Votos por município em ${uf}, eleição de ${mapa.ano}`} onMouseLeave={() => setFoco(null)}>
         {caminhos.map(({ f, d }) => {
           const m = mapa.municipios[f.properties.codarea];
           const ativo = foco?.f === f;
@@ -60,7 +78,7 @@ export function MapaEleitoral({ slug, uf }: { slug: string; uf: string }) {
               d={d}
               fill={m ? escala(m.pct) : "var(--card-2)"}
               stroke={ativo ? "var(--ink)" : "var(--card)"}
-              strokeWidth={ativo ? 1.5 : 0.4}
+              strokeWidth={ativo ? 1.5 : 0.25}
               onMouseMove={(e) => {
                 const r = (e.currentTarget.ownerSVGElement as SVGSVGElement).getBoundingClientRect();
                 setFoco({ f, x: e.clientX - r.left, y: e.clientY - r.top, w: r.width });
@@ -92,9 +110,9 @@ export function MapaEleitoral({ slug, uf }: { slug: string; uf: string }) {
         <div className="h-1.5 rounded-full" style={{ background: `linear-gradient(90deg, ${escala(0)}, ${escala(max / 4)}, ${escala(max)})` }} />
         <div className="mt-1 flex justify-between text-xs text-muted">
           <span>0%</span>
-          <span>% dos votos válidos para o cargo · eleição {mapa.ano}</span>
           <span>{pct(max)}</span>
         </div>
+        <p className="mt-1 text-center text-xs text-muted">% dos votos válidos para o cargo em cada município · eleição {mapa.ano}</p>
       </figcaption>
     </figure>
   );

@@ -183,7 +183,7 @@ export interface Meta {
   fontes: { nome: string; url: string; atualizadoEm: string }[];
 }
 
-/** public/data/municipios/{ibge}.json — usado na busca por CEP/cidade. */
+/** public/data/municipios/{ibge}.json — usado na busca por cidade. */
 export interface MunicipioDados {
   ibge: string;
   nome: string;

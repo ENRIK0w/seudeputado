@@ -19,7 +19,7 @@ const ORDENS: { id: Ordem; rotulo: string }[] = [
 const norm = (s: string) =>
   s
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
 const valor = (p: ParlamentarResumo, o: Ordem): number => {

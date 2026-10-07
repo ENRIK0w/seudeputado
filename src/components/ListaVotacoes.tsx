@@ -7,7 +7,7 @@ import { VotacaoItem } from "./VotacaoItem";
 const norm = (s: string) =>
   s
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
 export function ListaVotacoes({ votacoes }: { votacoes: VotacaoResumo[] }) {

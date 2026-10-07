@@ -12,10 +12,13 @@ import type {
   VotoParlamentar,
   VotoTipo,
 } from "../src/lib/types";
+import { porte } from "../src/lib/buscaCidade";
 import { espectroDe } from "../src/lib/partidos";
 import { calcularMetricas } from "./metricas";
 import { gravarDataset } from "./output";
 import { agregarGastos, type Despesa } from "./sources/gastos";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 // PRNG determinístico (mulberry32) — o exemplo é sempre igual.
 let seed = 20261007;
@@ -55,27 +58,46 @@ const TEMAS = ["educação básica", "saúde pública", "segurança pública", "
 const CATEGORIAS = ["DIVULGAÇÃO DA ATIVIDADE PARLAMENTAR.", "PASSAGEM AÉREA - SIGEPA", "COMBUSTÍVEIS E LUBRIFICANTES.", "MANUTENÇÃO DE ESCRITÓRIO DE APOIO À ATIVIDADE PARLAMENTAR", "LOCAÇÃO OU FRETAMENTO DE VEÍCULOS AUTOMOTORES", "TELEFONIA", "CONSULTORIAS, PESQUISAS E TRABALHOS TÉCNICOS.", "HOSPEDAGEM ,EXCETO DO PARLAMENTAR NO DISTRITO FEDERAL."];
 const FUNCOES = ["Saúde", "Educação", "Urbanismo", "Agricultura", "Assistência social", "Segurança pública", "Desporto e lazer"];
 
-/** Cada UF ganha uma malha fictícia de hexágonos; a primeira célula é a capital (código IBGE real). */
-function malhaFicticia(uf: string, n: number) {
-  const features = [];
-  const municipios: { ibge: string; nome: string }[] = [];
-  const cols = Math.ceil(Math.sqrt(n * 1.4));
-  for (let i = 0; i < n; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const cx = col * 1.5 * 0.6;
-    const cy = -(row * Math.sqrt(3) * 0.6 + (col % 2 ? (Math.sqrt(3) / 2) * 0.6 : 0));
-    const ring = Array.from({ length: 7 }, (_, k) => {
-      const a = (Math.PI / 3) * (k % 6);
-      return [cx + 0.58 * Math.cos(a), cy + 0.58 * Math.sin(a)];
-    });
-    const ibge = i === 0 ? CAPITAIS[uf][0] : `${CAPITAIS[uf][0].slice(0, 2)}9${String(i).padStart(4, "0")}`;
-    const nome = i === 0 ? CAPITAIS[uf][1] : `Município Exemplo ${i}`;
-    municipios.push({ ibge, nome });
-    features.push({ type: "Feature", properties: { codarea: ibge, nome }, geometry: { type: "Polygon", coordinates: [ring] } });
-  }
-  return { geo: { type: "FeatureCollection", features }, municipios };
+interface MunicipioBase {
+  ibge: string;
+  nome: string;
+  /** centróide aproximado [lon, lat] */
+  c: [number, number];
+  /** eleitores fictícios, maiores nas cidades grandes */
+  eleitores: number;
 }
+
+/** Malhas e municípios reais (dados-base/, gerados do IBGE). Só os votos e valores são fictícios. */
+function carregarBase() {
+  const malhas: Record<string, unknown> = {};
+  const municipiosUf: Record<string, MunicipioBase[]> = {};
+  const raio: Record<string, number> = {};
+  for (const uf of Object.keys(CAPITAIS)) {
+    const geo = JSON.parse(readFileSync(path.join("dados-base", "malhas", `${uf}.json`), "utf8")) as {
+      features: { properties: { codarea: string; nome: string }; geometry: { coordinates: unknown } }[];
+    };
+    malhas[uf] = geo;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    municipiosUf[uf] = geo.features.map((f) => {
+      const pts = (f.geometry.coordinates as unknown[]).flat(3) as number[];
+      let sx = 0, sy = 0;
+      for (let i = 0; i < pts.length; i += 2) {
+        sx += pts[i];
+        sy += pts[i + 1];
+        minX = Math.min(minX, pts[i]); maxX = Math.max(maxX, pts[i]);
+        minY = Math.min(minY, pts[i + 1]); maxY = Math.max(maxY, pts[i + 1]);
+      }
+      const n = pts.length / 2;
+      const rank = porte([f.properties.codarea, f.properties.nome, uf]);
+      const eleitores = Number.isFinite(rank) ? Math.round(9_000_000 / (rank + 1) ** 0.9) : Math.round(3000 + rnd() ** 3 * 200_000);
+      return { ibge: f.properties.codarea, nome: f.properties.nome, c: [sx / n, sy / n] as [number, number], eleitores };
+    });
+    raio[uf] = Math.hypot(maxX - minX, maxY - minY) / 2;
+  }
+  return { malhas, municipiosUf, raio };
+}
+
+const distancia = (a: MunicipioBase, b: MunicipioBase) => Math.hypot(a.c[0] - b.c[0], a.c[1] - b.c[1]);
 
 function distribuir(cotas: Record<string, number>): string[] {
   const out = Object.entries(cotas).flatMap(([k, n]) => Array<string>(n).fill(k));
@@ -93,13 +115,7 @@ function dataAleatoria(inicio = "2023-02-01", fim = "2026-09-30") {
 }
 
 function main() {
-  const malhas: Record<string, unknown> = {};
-  const municipiosUf: Record<string, { ibge: string; nome: string }[]> = {};
-  for (const uf of Object.keys(CAPITAIS)) {
-    const m = malhaFicticia(uf, int(18, 60));
-    malhas[uf] = m.geo;
-    municipiosUf[uf] = m.municipios;
-  }
+  const { malhas, municipiosUf, raio } = carregarBase();
 
   const parlamentares: Parlamentar[] = [];
   const eleicaoMapas: Record<string, EleicaoMapa> = {};
@@ -146,9 +162,15 @@ function main() {
       }
     }
 
+    // Reduto eleitoral: a capital em 1/4 dos casos, senão um município qualquer do estado.
     const municipios = municipiosUf[uf];
+    const capital = municipios.find((m) => m.ibge === CAPITAIS[uf][0])!;
+    const reduto = rnd() < 0.25 ? capital : pick(municipios);
+    const proximos = [...municipios].sort((a, b) => distancia(a, reduto) - distancia(b, reduto)).slice(0, 30);
+    const maiores = [...municipios].sort((a, b) => b.eleitores - a.eleitores).slice(0, 8);
     const emendas: EmendaResumo[] = Array.from({ length: int(4, 30) }, (_, k) => {
-      const mun = pick(municipios);
+      const r = rnd();
+      const mun = r < 0.55 ? pick(proximos) : r < 0.85 ? pick(maiores) : pick(municipios);
       const empenhado = int(100, 3000) * 1000;
       return {
         ano: int(2023, 2026),
@@ -163,14 +185,14 @@ function main() {
       };
     });
 
-    // Eleição: votos concentrados num "reduto" e espalhados pelo resto.
-    const reduto = int(0, municipios.length - 1);
+    // Eleição: votos concentrados em volta do reduto e espalhados pelo resto do estado.
     const mapa: EleicaoMapa = { uf, ano: casa === "senado" && rnd() < 0.5 ? 2018 : 2022, municipios: {} };
+    const alcance = raio[uf] * (casa === "senado" ? 0.9 : 0.18);
     let total = 0;
-    municipios.forEach((m, k) => {
-      const dist = Math.abs(k - reduto);
-      const pct = Math.max(0.002, (casa === "senado" ? 0.35 : 0.12) * Math.exp(-dist / 6) * (0.6 + rnd() * 0.8));
-      const votos = Math.round(pct * int(8000, k === 0 ? 900000 : 60000));
+    municipios.forEach((m) => {
+      const queda = Math.exp(-distancia(m, reduto) / alcance);
+      const pct = Math.max(0.001, (casa === "senado" ? 0.45 : 0.14) * queda * (0.5 + rnd()));
+      const votos = Math.round(pct * m.eleitores);
       mapa.municipios[m.ibge] = { votos, pct: Math.round(pct * 10000) / 10000 };
       total += votos;
     });

@@ -38,7 +38,7 @@ const PARTIDOS: Record<string, InfoPartido> = {
 const chave = (sigla: string) =>
   sigla
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase()
     .replace(/[^A-Z]/g, "");
 

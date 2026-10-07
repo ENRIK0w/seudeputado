@@ -35,7 +35,7 @@ GitHub Actions (cron diário)
 
 - **Next.js 16** com export estático: uma página HTML por parlamentar, gerada no build.
 - **JSON estático** para dados grandes ou sob demanda (todos os votos, mapa por município, dados de cada cidade).
-- **Busca por CEP** feita no navegador: ViaCEP → código IBGE do município → `public/data/municipios/{ibge}.json`.
+- **Busca por cidade** feita no navegador sobre a lista dos municípios (ignora acentos, aceita "Campinas SP", tolera erros de digitação) → `public/data/municipios/{ibge}.json`.
 - **Gráficos**: SVG próprio + `d3-geo` para mapas (malhas do IBGE).
 - Custo: R$ 0 (GitHub Actions + Pages). Se o volume crescer, Cloudflare Pages/R2 continuam grátis.
 
@@ -53,7 +53,7 @@ GitHub Actions (cron diário)
 | Votos por município, candidatos, bens, receitas | TSE `cdn.tse.jus.br/estatistica/sead/odsele` | ZIP/CSV |
 | Emendas parlamentares (valor, município, pago) | Portal da Transparência (download) | ZIP/CSV |
 | Municípios e malhas (mapas) | IBGE `servicodados.ibge.gov.br` | JSON/GeoJSON |
-| CEP → município | ViaCEP (no navegador) | JSON |
+| Malhas municipais simplificadas | IBGE via geodata-br, versionadas em `dados-base/` | GeoJSON |
 
 ### Cruzamentos
 
@@ -80,9 +80,9 @@ primeira execução com dados reais · ⬜ a fazer
   hospedagem final e banco (Neon/Postgres) antes de ligar a coleta diária
 
 ### Fase 2
-- 🔶 **Mapa de calor eleitoral** por município (TSE + malha IBGE) — UI pronta
+- 🔶 **Mapa de calor eleitoral**: mapa real do estado dividido por município (malhas em `dados-base/`); falta cruzar com o TSE real
 - 🔶 **Emendas**: quanto, para onde, quando, empenhado × pago — UI pronta
-- 🔶 **Busca por CEP/cidade** — UI pronta (ViaCEP no navegador)
+- ✅ **Busca por cidade** (sem CEP, por decisão do produto)
 - 🔶 Patrimônio declarado — evolução entre eleições ⬜
 - ⬜ Doadores de campanha (arquivo do TSE tem vários GB; processar à parte)
 - ⬜ Linha do tempo de tramitação de cada projeto

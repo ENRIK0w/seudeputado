@@ -8,7 +8,7 @@ import type { VotoTipo } from "../../src/lib/types";
 export function normalizarNome(s: string): string {
   return s
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase()
     .replace(/[^A-Z0-9 ]+/g, " ")
     .replace(/\s+/g, " ")

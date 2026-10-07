@@ -61,8 +61,8 @@ async function main() {
     }
     const ufs = [...new Set(parlamentares.map((p) => p.uf))].filter((uf) => uf && uf !== "DF");
     for (const uf of [...ufs, "DF"]) {
-      const geo = await opcional(`Malha ${uf}`, () => malhaDaUf(uf));
-      if (geo) ds.malhas[uf] = comNomes(geo, municipios);
+      const geo = await opcional(`Malha ${uf}`, async () => malhaDaUf(uf));
+      if (geo) ds.malhas[uf] = geo;
     }
   }
 
@@ -70,14 +70,6 @@ async function main() {
 
   await gravarDataset(ds);
   console.log(`Pronto em ${Math.round((Date.now() - inicio) / 1000)}s`);
-}
-
-/** Acrescenta o nome do município em cada feature (a malha do IBGE só traz o código). */
-function comNomes(geo: unknown, municipios: { ibge: string; nome: string }[]) {
-  const nomes = new Map(municipios.map((m) => [m.ibge, m.nome]));
-  const fc = geo as { features?: { properties: Record<string, string> }[] };
-  for (const f of fc.features ?? []) f.properties.nome = nomes.get(String(f.properties.codarea)) ?? "";
-  return geo;
 }
 
 function montarMunicipios(

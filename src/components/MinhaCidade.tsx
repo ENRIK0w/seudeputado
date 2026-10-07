@@ -4,26 +4,20 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { urlDados } from "@/lib/caminho";
 import { numero, pct, reais, reaisCompacto } from "@/lib/formato";
+import { buscarCidades, type MunicipioIndice } from "@/lib/buscaCidade";
 import type { ItemBusca, MunicipioDados } from "@/lib/types";
 import { Avatar, Barra, CabecalhoCard, Card, Partido, Vazio } from "./ui";
 
-type IndiceMun = [ibge: string, nome: string, uf: string][];
-
-const norm = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
-
 export function MinhaCidade() {
   const [entrada, setEntrada] = useState("");
-  const [indice, setIndice] = useState<IndiceMun>([]);
+  const [indice, setIndice] = useState<MunicipioIndice[] | null>(null);
+  const [destaque, setDestaque] = useState(0);
   const [busca, setBusca] = useState<ItemBusca[]>([]);
   const [mun, setMun] = useState<MunicipioDados | null>(null);
   const [status, setStatus] = useState<"" | "carregando" | "erro" | "sem-dados">("");
 
   useEffect(() => {
-    fetch(urlDados("municipios-indice.json")).then((r) => r.json()).then(setIndice).catch(() => {});
+    fetch(urlDados("municipios-indice.json")).then((r) => r.json()).then(setIndice).catch(() => setIndice([]));
     fetch(urlDados("busca.json")).then((r) => r.json()).then(setBusca).catch(() => {});
     const ibge = new URLSearchParams(window.location.search).get("ibge");
     if (ibge) abrir(ibge);
@@ -46,24 +40,14 @@ export function MinhaCidade() {
     }
   }
 
-  async function buscarCep(cep: string) {
-    setStatus("carregando");
-    try {
-      const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      const j = await r.json();
-      if (j.erro || !j.ibge) throw new Error();
-      await abrir(j.ibge);
-    } catch {
-      setStatus("erro");
-    }
-  }
+  const sugestoes = useMemo(() => (indice ? buscarCidades(indice, entrada) : []), [indice, entrada]);
 
-  const digitos = entrada.replace(/\D/g, "");
-  const sugestoes = useMemo(() => {
-    const t = norm(entrada.trim());
-    if (t.length < 3 || /^\d/.test(t)) return [];
-    return indice.filter(([, nome]) => norm(nome).startsWith(t)).slice(0, 8);
-  }, [entrada, indice]);
+  function escolher(c: MunicipioIndice | undefined) {
+    if (!c) return;
+    setEntrada("");
+    setDestaque(0);
+    abrir(c[0]);
+  }
 
   const representantes = mun ? busca.filter((b) => b.uf === mun.uf && b.emExercicio) : [];
   const maxEmenda = mun?.emendas[0]?.pago || 1;
@@ -72,45 +56,60 @@ export function MinhaCidade() {
     <div className="grid gap-4">
       <Card>
         <h1 className="titulo text-[32px] leading-tight">O que chegou na sua cidade</h1>
-        <p className="mt-2 text-ink-2">Digite o CEP ou o nome do município.</p>
+        <p className="mt-2 text-ink-2">Digite o nome do município. Pode incluir o estado: &quot;Campinas SP&quot;.</p>
         <form
-          className="relative mt-4 flex gap-2"
+          className="relative mt-4"
+          role="search"
           onSubmit={(e) => {
             e.preventDefault();
-            if (digitos.length === 8) buscarCep(digitos);
-            else if (sugestoes[0]) abrir(sugestoes[0][0]);
+            escolher(sugestoes[destaque]);
           }}
         >
           <input
             value={entrada}
-            onChange={(e) => setEntrada(e.target.value)}
-            placeholder="00000-000 ou nome da cidade"
-            inputMode="search"
-            aria-label="CEP ou cidade"
+            onChange={(e) => {
+              setEntrada(e.target.value);
+              setDestaque(0);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setDestaque((d) => Math.min(d + 1, sugestoes.length - 1));
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setDestaque((d) => Math.max(d - 1, 0));
+              } else if (e.key === "Escape") setEntrada("");
+            }}
+            placeholder="Nome da cidade"
+            autoComplete="off"
+            role="combobox"
+            aria-expanded={sugestoes.length > 0}
+            aria-controls="sugestoes-cidade"
+            aria-label="Nome da cidade"
             className="w-full rounded-full border border-line bg-card-2 px-4 py-3 text-[16px] text-ink outline-none placeholder:text-muted focus:border-accent"
           />
-          <button className="shrink-0 rounded-full bg-ink px-5 text-[15px] font-medium text-bg hover:opacity-90">Buscar</button>
           {sugestoes.length > 0 && (
-            <ul className="card divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden !rounded-2xl shadow-2xl">
-              {sugestoes.map(([ibge, nome, uf]) => (
-                <li key={ibge}>
+            <ul id="sugestoes-cidade" role="listbox" className="card divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden !rounded-2xl shadow-2xl">
+              {sugestoes.map((c, i) => (
+                <li key={c[0]} role="option" aria-selected={i === destaque}>
                   <button
                     type="button"
-                    onClick={() => {
-                      setEntrada("");
-                      abrir(ibge);
-                    }}
-                    className="w-full px-4 py-3 text-left text-ink hover:bg-card-2"
+                    onMouseMove={() => setDestaque(i)}
+                    onClick={() => escolher(c)}
+                    className={`w-full px-4 py-3 text-left text-ink ${i === destaque ? "bg-card-2" : ""}`}
                   >
-                    {nome} <span className="text-muted">· {uf}</span>
+                    {c[1]} <span className="text-muted">· {c[2]}</span>
                   </button>
                 </li>
               ))}
             </ul>
           )}
+          {indice && entrada.trim().length >= 2 && sugestoes.length === 0 && (
+            <p className="mt-3 text-sm text-muted">Nenhum município encontrado com esse nome.</p>
+          )}
         </form>
         {status === "carregando" && <p className="mt-3 text-sm text-muted">Carregando…</p>}
-        {status === "erro" && <p className="mt-3 text-sm text-nao">Não encontramos esse CEP. Confira os números ou busque pelo nome da cidade.</p>}
+        {status === "erro" && <p className="mt-3 text-sm text-nao">Não foi possível carregar os dados. Tente de novo.</p>}
         {status === "sem-dados" && <p className="mt-3 text-sm text-muted">Ainda não temos dados para esse município.</p>}
       </Card>
 

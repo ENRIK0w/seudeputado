@@ -42,7 +42,7 @@ export function buscarOrientacao(orientacoes: OrientacaoBancada[], partido: stri
 
   const compacto = alvo.replace(/ /g, "");
   for (const o of orientacoes) {
-    const b = o.bancada.normalize("NFD").replace(/[̀-ͯ]/g, "");
+    const b = o.bancada.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     if (!/^(bl|bloco|fdr|federa)/i.test(b)) continue;
     // "Bl UniãoPpPdt" → ["Bl","Uniao","Pp","Pdt"]; "Fdr PT-PCdoB-PV" → ["Fdr","PT","PCdoB","PV"]
     const partes = b.split(/[^A-Za-z]+|(?<=[a-z])(?=[A-Z][a-z])/).map((p) => p.toUpperCase());
