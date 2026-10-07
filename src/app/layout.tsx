@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { BarraAbas } from "@/components/BarraAbas";
 import { Marca } from "@/components/Marca";
 import { Navegacao } from "@/components/Navegacao";
 import { Revelador } from "@/components/Revelador";
@@ -23,6 +24,8 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  // Conteúdo vai até as bordas (a barra de abas respeita a área segura do iPhone)
+  viewportFit: "cover",
 };
 
 const FONTES = [
@@ -71,15 +74,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <TemaToggle />
             </div>
           </div>
-          <div className="mx-auto w-full max-w-6xl px-4 md:hidden">
-            <Navegacao />
-          </div>
         </header>
         <main className="mx-auto w-full max-w-6xl px-4 pt-6 pb-10 md:px-6 md:pt-10">
           <TransicaoPagina>{children}</TransicaoPagina>
         </main>
         <footer className="border-t border-line">
-          <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 text-sm text-muted md:grid-cols-[1.3fr_1fr_1fr] md:px-6">
+          <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 pt-10 pb-32 text-sm text-muted md:grid-cols-[1.3fr_1fr_1fr] md:px-6 md:pb-10">
             <div>
               <div className="flex items-center gap-2.5 text-ink">
                 <Marca className="h-[14px] w-5" />
@@ -111,6 +111,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </div>
           </div>
         </footer>
+        <BarraAbas />
       </body>
     </html>
   );

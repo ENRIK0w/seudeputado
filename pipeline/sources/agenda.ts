@@ -106,7 +106,9 @@ async function agendaSenado(inicio: string, fim: string): Promise<EventoAgenda[]
     for (const s of sessoes) {
       const data = dataSenado(campo(s, "DataSessao", "Data"));
       if (data < inicio || data > fim) continue;
-      const tipo = String(campo(s, "DescricaoTipoSessao", "TipoSessao", "NomeTipoSessao") ?? "Sessão");
+      // O Senado manda o tipo em maiúsculas ("SESSÃO DELIBERATIVA ORDINÁRIA ")
+      const bruto = String(campo(s, "DescricaoTipoSessao", "TipoSessao", "NomeTipoSessao") ?? "Sessão").trim().toLowerCase();
+      const tipo = bruto.charAt(0).toUpperCase() + bruto.slice(1);
       const situacao = (campo<string>(s, "SituacaoSessao", "DescricaoSituacaoSessao") as string) ?? null;
       const casa = /^CN$/i.test(String(campo(s, "SiglaCasa", "Casa") ?? "")) || /congresso/i.test(tipo) ? "congresso" : "senado";
       // Só sessões que votam: as não deliberativas e solenes ficam de fora

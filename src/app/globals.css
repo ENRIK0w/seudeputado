@@ -27,6 +27,10 @@
   --mapa-0: #1c2135;
   --mapa-1: #a3b8ff;
   --sombra: 0 1px 0 rgb(255 255 255 / 0.03) inset;
+  --vidro: rgb(30 30 32 / 0.58);
+  --vidro-borda: rgb(255 255 255 / 0.08);
+  --vidro-brilho: rgb(255 255 255 / 0.22);
+  --vidro-sombra: 0 12px 32px rgb(0 0 0 / 0.38), 0 2px 6px rgb(0 0 0 / 0.25);
   color-scheme: dark;
 }
 
@@ -49,6 +53,10 @@
     --mapa-0: #e8ecf6;
     --mapa-1: #2140b5;
     --sombra: 0 1px 2px rgb(40 32 16 / 0.04);
+    --vidro: rgb(255 254 251 / 0.62);
+    --vidro-borda: rgb(255 255 255 / 0.6);
+    --vidro-brilho: rgb(255 255 255 / 0.95);
+    --vidro-sombra: 0 12px 32px rgb(40 32 16 / 0.12), 0 1px 3px rgb(40 32 16 / 0.08), 0 0 0 0.5px rgb(40 32 16 / 0.08);
     color-scheme: light;
   }
 }
@@ -70,6 +78,10 @@
   --mapa-0: #e8ecf6;
   --mapa-1: #2140b5;
   --sombra: 0 1px 2px rgb(40 32 16 / 0.04);
+  --vidro: rgb(255 254 251 / 0.62);
+  --vidro-borda: rgb(255 255 255 / 0.6);
+  --vidro-brilho: rgb(255 255 255 / 0.95);
+  --vidro-sombra: 0 12px 32px rgb(40 32 16 / 0.12), 0 1px 3px rgb(40 32 16 / 0.08), 0 0 0 0.5px rgb(40 32 16 / 0.08);
   color-scheme: light;
 }
 
@@ -93,7 +105,11 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(900px 520px at -10% -8%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 62%),
+    radial-gradient(760px 480px at 110% 4%, color-mix(in srgb, var(--centro) 9%, transparent), transparent 62%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 15px;
@@ -260,10 +276,9 @@ button.pilula[data-ativa="true"]:not(.com-indicador) {
 
 /* ---- Cabeçalho fixo: fundo translúcido e linha fina ---- */
 .cabecalho {
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: saturate(1.4) blur(14px);
-  -webkit-backdrop-filter: saturate(1.4) blur(14px);
-  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+  backdrop-filter: blur(22px) saturate(180%);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
 }
 .cabecalho .menu-item {
   padding: 1.15rem 0;
@@ -304,6 +319,144 @@ button.pilula[data-ativa="true"]:not(.com-indicador) {
   font-style: italic;
   color: var(--muted);
   font-variant-numeric: lining-nums;
+}
+
+/* ===================================================================== */
+/* Vidro líquido: só na camada que flutua sobre o conteúdo (barras, menus, */
+/* folhas). Fundo translúcido com desfoque + reflexo de luz na borda.      */
+/* ===================================================================== */
+/* Quem usa .vidro precisa estar posicionado (fixed/absolute/relative) por causa do ::before */
+.vidro {
+  background: var(--vidro);
+  backdrop-filter: blur(24px) saturate(185%);
+  border: 1px solid var(--vidro-borda);
+  box-shadow: var(--vidro-sombra);
+}
+/* Reflexo na borda: mais forte no alto à esquerda e embaixo à direita */
+.vidro::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(150deg, var(--vidro-brilho), transparent 32%, transparent 68%, color-mix(in srgb, var(--vidro-brilho) 60%, transparent));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Barra de abas flutuante (celular) */
+.barra-abas {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(calc(100% - 28px), 420px);
+  border-radius: 999px;
+  padding: 5px;
+}
+.barra-abas .lente {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc((100% - 10px) / var(--n));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--vidro-brilho) 70%, transparent);
+  transform: translateX(calc(100% * var(--i)));
+  transition: transform 480ms var(--mola);
+}
+.barra-abas a {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 0 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color 250ms ease, transform 160ms var(--mola);
+}
+.barra-abas a:active {
+  transform: scale(0.92);
+}
+.barra-abas a[data-ativa="true"] {
+  color: var(--ink);
+}
+.barra-abas svg {
+  width: 23px;
+  height: 23px;
+}
+
+/* Folha que sobe de baixo (detalhes sem sair da página) */
+.folha-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgb(0 0 0 / 0.32);
+  animation: aparecer 260ms ease both;
+}
+.folha {
+  position: fixed;
+  z-index: 51;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-inline: auto;
+  max-width: 560px;
+  max-height: 82dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px 28px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: folha-sobe 460ms var(--mola) both;
+}
+@media (min-width: 640px) {
+  .folha {
+    bottom: 24px;
+    border-radius: 28px;
+  }
+}
+@keyframes folha-sobe {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Faixa de dias que desliza para o lado */
+.faixa-dias {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-mask: linear-gradient(90deg, #000 86%, transparent);
+  mask: linear-gradient(90deg, #000 86%, transparent);
+}
+.faixa-dias::-webkit-scrollbar {
+  display: none;
+}
+.faixa-dias > * {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+/* Celular: cantos mais generosos */
+@media (max-width: 767px) {
+  .card {
+    border-radius: 20px;
+  }
 }
 
 .divisor > * + * {

@@ -49,7 +49,7 @@ export function BuscaRapida({ autoFocus = false }: { autoFocus?: boolean }) {
         />
       </label>
       {resultados.length > 0 && (
-        <ul className="popover card divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden !rounded-xl shadow-2xl">
+        <ul className="popover vidro divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-2xl">
           {resultados.map((r) => (
             <li key={r.slug}>
               <Link href={`/p/${r.slug}/`} className="pressionavel flex items-center gap-3 px-4 py-3 hover:bg-card-2">
