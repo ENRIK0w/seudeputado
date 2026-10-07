@@ -76,7 +76,8 @@ primeira execução com dados reais · ⬜ a fazer
 - ✅ Lista de parlamentares com filtros (casa, UF, partido, ordenação)
 - ✅ Perfil: resumo, métricas, mapa de votos, partidos, proposições, gastos, emendas
 - ✅ Página de votação: placar, orientações, votos por partido, voto a voto
-- 🔶 Atualização diária + deploy no GitHub Pages (workflow pronto; falta ativar o Pages)
+- 🔶 Hospedagem: demo na Vercel com dados de exemplo (ISR, sem banco). Falta decidir
+  hospedagem final e banco (Neon/Postgres) antes de ligar a coleta diária
 
 ### Fase 2
 - 🔶 **Mapa de calor eleitoral** por município (TSE + malha IBGE) — UI pronta

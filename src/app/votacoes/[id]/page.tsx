@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Avatar, CabecalhoCard, Card } from "@/components/ui";
-import { indiceParlamentares, listarVotacoes, obterVotacao } from "@/lib/dados";
+import { notFound } from "next/navigation";
+import { CabecalhoCard, Card } from "@/components/ui";
+import { VotoAVoto, type Votante } from "@/components/VotoAVoto";
+import { indiceParlamentares, obterVotacao } from "@/lib/dados";
 import { COR_VOTO, data, numero, ROTULO_VOTO } from "@/lib/formato";
 import { corPartido } from "@/lib/partidos";
 import type { VotoTipo } from "@/lib/types";
 
-export const dynamicParams = false;
+// Gerada na primeira visita e guardada em cache por um dia (ou até a próxima atualização de dados).
+export const revalidate = 86400;
 
 export function generateStaticParams() {
-  return listarVotacoes().map((v) => ({ id: v.id }));
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps<"/votacoes/[id]">): Promise<Metadata> {
   const v = obterVotacao((await params).id);
+  if (!v) return {};
   return { title: `${v.proposicao ?? "Votação"} — ${data(v.data)}`, description: v.descricao };
 }
 
@@ -21,6 +24,7 @@ const ORDEM: VotoTipo[] = ["sim", "nao", "abstencao", "obstrucao", "art17"];
 
 export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id]">) {
   const v = obterVotacao((await params).id);
+  if (!v) notFound();
   const parl = indiceParlamentares();
   const validos = v.placar.sim + v.placar.nao || 1;
   const porVoto = new Map<VotoTipo, string[]>();
@@ -123,39 +127,18 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
 
       <Card className="lg:col-span-2">
         <CabecalhoCard titulo="Voto a voto" aside={`${numero(Object.keys(v.votos).length)} votos registrados`} />
-        <div className="space-y-2">
-          {ORDEM.filter((t) => porVoto.has(t)).map((t) => {
-            const slugs = porVoto.get(t)!.sort((a, b) => (parl.get(a)?.nome ?? a).localeCompare(parl.get(b)?.nome ?? b, "pt-BR"));
-            return (
-              <details key={t} className="group rounded-2xl bg-card-2 px-4" open={slugs.length <= 20}>
-                <summary className="flex cursor-pointer list-none items-center justify-between py-3">
-                  <span className="inline-flex items-center gap-2 font-medium text-ink">
-                    <span className="size-2.5 rounded-sm" style={{ background: COR_VOTO[t] }} aria-hidden />
-                    {ROTULO_VOTO[t]} <span className="text-ink-2">{slugs.length}</span>
-                  </span>
-                  <span className="text-sm text-muted group-open:rotate-180">↓</span>
-                </summary>
-                <ul className="grid gap-x-4 pb-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {slugs.map((s) => {
-                    const p = parl.get(s);
-                    if (!p) return null;
-                    return (
-                      <li key={s}>
-                        <Link href={`/p/${s}/`} className="flex items-center gap-2 py-1.5 text-sm hover:underline hover:underline-offset-4">
-                          <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={24} />
-                          <span className="truncate text-ink">{p.nome}</span>
-                          <span className="shrink-0 text-xs text-muted">
-                            {p.partido}-{p.uf}
-                          </span>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </details>
-            );
-          })}
-        </div>
+        <VotoAVoto
+          grupos={ORDEM.filter((t) => porVoto.has(t)).map((t) => ({
+            voto: t,
+            votantes: porVoto
+              .get(t)!
+              .flatMap((s): Votante[] => {
+                const p = parl.get(s);
+                return p ? [[s, p.nome, p.partido, p.uf]] : [];
+              })
+              .sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
+          }))}
+        />
       </Card>
     </div>
   );

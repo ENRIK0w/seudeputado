@@ -16,9 +16,15 @@ function ler<T>(arquivo: string): T {
 }
 
 export const listarParlamentares = cache(() => ler<ParlamentarResumo[]>("parlamentares.json"));
-export const obterParlamentar = cache((slug: string) => ler<Parlamentar>(`parlamentares/${slug}.json`));
+const seguro = (arquivo: string) => /^[a-z]+-[\w-]+$/i.test(arquivo);
+
+export const obterParlamentar = cache((slug: string) =>
+  seguro(slug) && existsSync(path.join(DATA, "parlamentares", `${slug}.json`)) ? ler<Parlamentar>(`parlamentares/${slug}.json`) : null,
+);
 export const listarVotacoes = cache(() => ler<VotacaoResumo[]>("votacoes.json"));
-export const obterVotacao = cache((id: string) => ler<Votacao>(`votacoes/${id}.json`));
+export const obterVotacao = cache((id: string) =>
+  seguro(id) && existsSync(path.join(DATA, "votacoes", `${id}.json`)) ? ler<Votacao>(`votacoes/${id}.json`) : null,
+);
 export const obterComposicao = cache(() => ler<Composicao[]>("composicao.json"));
 export const obterMeta = cache(() => ler<Meta>("meta.json"));
 

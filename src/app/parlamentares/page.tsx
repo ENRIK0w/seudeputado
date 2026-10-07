@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { ListaParlamentares } from "@/components/ListaParlamentares";
 import { listarParlamentares } from "@/lib/dados";
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = { title: "Parlamentares" };
 
 export default function Parlamentares() {

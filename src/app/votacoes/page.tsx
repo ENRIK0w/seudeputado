@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { ListaVotacoes } from "@/components/ListaVotacoes";
 import { listarVotacoes } from "@/lib/dados";
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = { title: "Votações" };
 
 export default function Votacoes() {

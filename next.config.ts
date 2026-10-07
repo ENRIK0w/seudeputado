@@ -1,15 +1,15 @@
 import type { NextConfig } from "next";
 
-// Export estático (GitHub Pages / Cloudflare Pages). No GitHub Pages sem domínio
-// próprio o site fica em /<repo>, então o workflow define NEXT_PUBLIC_BASE_PATH.
-// Com domínio próprio, use BASE_PATH="/" (vira "").
-const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
-
 const nextConfig: NextConfig = {
-  output: "export",
   trailingSlash: true,
-  basePath,
   images: { unoptimized: true },
+  // As páginas de parlamentar e votação são geradas sob demanda (ISR) e leem os
+  // JSON de data/ em tempo de execução — precisam ir junto no pacote da função.
+  outputFileTracingIncludes: {
+    "/p/[slug]": ["./data/parlamentares/**/*", "./data/*.json"],
+    "/votacoes/[id]": ["./data/votacoes/**/*", "./data/*.json"],
+    "/*": ["./data/*.json"],
+  },
   turbopack: {
     rules: {
       "*.css": {

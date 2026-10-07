@@ -3,6 +3,8 @@ import { Card } from "@/components/ui";
 import { obterMeta } from "@/lib/dados";
 import { data } from "@/lib/formato";
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = { title: "Metodologia e fontes" };
 
 export default function Metodologia() {

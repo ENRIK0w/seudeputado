@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Emendas } from "@/components/perfil/Emendas";
 import { Gastos } from "@/components/perfil/Gastos";
 import { HistoricoVotos } from "@/components/perfil/HistoricoVotos";
@@ -6,10 +7,11 @@ import { MapaEleitoral } from "@/components/perfil/MapaEleitoral";
 import { HistoricoPartidos } from "@/components/perfil/Partidos";
 import { Proposicoes } from "@/components/perfil/Proposicoes";
 import { Avatar, Barra, CabecalhoCard, Card, Metrica, Partido } from "@/components/ui";
-import { indiceVotacoes, listarParlamentares, obterParlamentar } from "@/lib/dados";
+import { indiceVotacoes, obterParlamentar } from "@/lib/dados";
 import { cargo, idade, numero, pct, reaisCompacto, tituloVotacao } from "@/lib/formato";
 
-export const dynamicParams = false;
+// Gerada na primeira visita e guardada em cache por um dia (ou até a próxima atualização de dados).
+export const revalidate = 86400;
 
 /** "ELEITO POR QP" → "Eleito por QP" */
 function situacaoEleitoral(s: string) {
@@ -18,11 +20,12 @@ function situacaoEleitoral(s: string) {
 }
 
 export function generateStaticParams() {
-  return listarParlamentares().map((p) => ({ slug: p.slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Promise<Metadata> {
   const p = obterParlamentar((await params).slug);
+  if (!p) return {};
   return {
     title: `${p.nome} (${p.partido}-${p.uf})`,
     description: `Como ${p.nome} votou, projetos, gastos da cota, emendas e histórico de partidos.`,
@@ -46,6 +49,7 @@ function MetricaBarra({ rotulo, valor, explicacao }: { rotulo: string; valor: nu
 
 export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]">) {
   const p = obterParlamentar((await params).slug);
+  if (!p) notFound();
   const idx = indiceVotacoes();
   const descricoes = Object.fromEntries(
     p.votosRecentes.map((v) => {

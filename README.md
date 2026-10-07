@@ -25,10 +25,12 @@ Os downloads ficam em `.cache/` e são reaproveitados por ~20 h.
 
 ## Como funciona
 
-- **Sem banco de dados.** O `pipeline/` baixa as fontes oficiais, cruza e calcula as
-  métricas, e grava JSON. O Next.js gera um HTML estático por parlamentar e votação.
-- **Atualização diária** pelo GitHub Actions (`.github/workflows/publicar.yml`), com
-  deploy no GitHub Pages. Custo: zero.
+- **Sem banco de dados (por enquanto).** O `pipeline/` baixa as fontes oficiais, cruza,
+  calcula as métricas e grava JSON em `data/` (lido pelo servidor) e `public/data/`
+  (baixado pelo navegador).
+- **Páginas sob demanda (ISR).** Início e listas são geradas no build; cada perfil e
+  cada votação é gerado na primeira visita e fica em cache por 1 dia. Isso evita
+  gerar milhares de páginas no build e respeita o limite de rotas da Vercel.
 
 | Pasta | O que é |
 |---|---|
@@ -38,8 +40,11 @@ Os downloads ficam em `.cache/` e são reaproveitados por ~20 h.
 | `src/app/` | páginas: início, perfil (`/p/[slug]`), votações, cidade, metodologia |
 | `src/components/` | hemiciclo, mapa eleitoral, mapa de votos, gráficos |
 
-## Publicação
+## Ver o site na Vercel (dados de exemplo)
 
-1. Em *Settings → Pages*, escolha **GitHub Actions** como fonte.
-2. Rode o workflow **Atualizar dados e publicar** (ou faça push na `main`).
-3. Com domínio próprio, crie a variável de repositório `BASE_PATH` com o valor `/`.
+1. Em vercel.com → **Add New… → Project**, importe `ENRIK0w/seudeputado`.
+2. Não mude nada e clique em **Deploy**. O `vercel.json` já gera os dados de exemplo
+   antes do build.
+
+A publicação com dados reais (coleta diária no GitHub Actions) ainda depende da
+decisão sobre hospedagem e banco — veja PLANO.md.
