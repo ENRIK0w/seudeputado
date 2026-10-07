@@ -139,7 +139,7 @@ export async function coletarSenado(): Promise<ColetaCasa> {
           data,
           situacao: null,
           url: `https://www25.senado.leg.br/web/atividade/materias/-/materia/${codigo}`,
-          principal: campo(a, "IndicadorAutorPrincipal") === "Sim",
+          principal: /^s/i.test(String(campo(a, "IndicadorAutorPrincipal") ?? "")),
         },
       ];
     });

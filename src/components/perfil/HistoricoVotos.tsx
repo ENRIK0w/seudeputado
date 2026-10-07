@@ -6,6 +6,7 @@ import { urlDados } from "@/lib/caminho";
 import { COR_VOTO, data, ROTULO_VOTO } from "@/lib/formato";
 import type { VotoParlamentar, VotoTipo } from "@/lib/types";
 import { expandirVotos, type VotosCompactos } from "@/lib/votosCompactos";
+import { ListaComMais } from "../ListaComMais";
 
 type Indice = Record<string, { d: string; t: string }>;
 type Filtro = "todos" | "contraPartido" | "contraGoverno" | "ausente";
@@ -44,7 +45,6 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
   const [votos, setVotos] = useState(recentes);
   const [indice, setIndice] = useState<Indice>(descricoes);
   const [filtro, setFiltro] = useState<Filtro>("todos");
-  const [limite, setLimite] = useState(15);
   const [foco, setFoco] = useState<VotoParlamentar | null>(null);
   // A grade e a contagem só aparecem com o histórico completo (evita mostrar 30 e trocar por 1.000).
   const [completo, setCompleto] = useState(false);
@@ -131,10 +131,7 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
         {FILTROS.map((f) => (
           <button
             key={f.id}
-            onClick={() => {
-              setFiltro(f.id);
-              setLimite(15);
-            }}
+            onClick={() => setFiltro(f.id)}
             className={`rounded-full border px-3 py-1 text-sm ${filtro === f.id ? "border-ink bg-ink text-bg" : "border-line text-ink-2 hover:text-ink"}`}
           >
             {f.rotulo} {completo && <span className="opacity-70">{votos.filter((v) => passa(v, f.id)).length}</span>}
@@ -142,28 +139,27 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
         ))}
       </div>
 
-      <ul className="divisor mt-3">
-        {filtrados.slice(0, limite).map((v) => (
-          <li key={v.votacaoId}>
-            <Link href={`/votacoes/${v.votacaoId}/`} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 py-3 hover:opacity-90">
-              <span className="min-w-0">
-                <span className="text-xs text-muted">{data(v.data)}</span>
-                <span className="line-clamp-2 block text-[15px] leading-snug text-ink">{indice[v.votacaoId]?.t ?? v.votacaoId}</span>
-                <span className="text-xs text-muted">
-                  {v.orientacaoPartido ? `Partido: ${ROTULO_VOTO[v.orientacaoPartido]}` : "Partido: sem orientação"}
-                  {v.orientacaoGoverno && ` · Governo: ${ROTULO_VOTO[v.orientacaoGoverno]}`}
+      <div className="mt-2">
+        <ListaComMais
+          key={filtro}
+          rotulo="votações"
+          passo={20}
+          itens={filtrados.map((v) => (
+            <li key={v.votacaoId}>
+              <Link href={`/votacoes/${v.votacaoId}/`} className="pressionavel grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5 hover:opacity-90">
+                <span className="min-w-0">
+                  <span className="line-clamp-1 block text-[14px] leading-snug text-ink">{indice[v.votacaoId]?.t ?? v.votacaoId}</span>
+                  <span className="block truncate text-xs text-muted">
+                    {data(v.data)} · {v.orientacaoPartido ? `partido: ${ROTULO_VOTO[v.orientacaoPartido].toLowerCase()}` : "partido sem orientação"}
+                    {v.orientacaoGoverno && ` · governo: ${ROTULO_VOTO[v.orientacaoGoverno].toLowerCase()}`}
+                  </span>
                 </span>
-              </span>
-              <Chip voto={v.voto} />
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {filtrados.length > limite && (
-        <button onClick={() => setLimite((l) => l + 30)} className="mt-1 py-2 text-sm text-ink-2 hover:text-ink">
-          Mostrar mais ({filtrados.length - limite} restantes) ↓
-        </button>
-      )}
+                <Chip voto={v.voto} />
+              </Link>
+            </li>
+          ))}
+        />
+      </div>
     </div>
   );
 }

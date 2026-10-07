@@ -1,6 +1,7 @@
 import { data, duracao } from "@/lib/formato";
 import { corPartido } from "@/lib/partidos";
 import type { PeriodoPartido } from "@/lib/types";
+import { ListaComMais } from "../ListaComMais";
 
 /** Linha do tempo das filiações: barra proporcional ao tempo + lista com datas. */
 export function HistoricoPartidos({ periodos }: { periodos: PeriodoPartido[] }) {
@@ -29,9 +30,12 @@ export function HistoricoPartidos({ periodos }: { periodos: PeriodoPartido[] }) 
         <span>{periodos[0].inicio.slice(0, 4)}</span>
         <span>hoje</span>
       </div>
-      <ol className="divisor mt-3">
-        {recentes.map((p, i) => (
-          <li key={i} className="flex items-center justify-between gap-3 py-2.5">
+      <div className="mt-2">
+      <ListaComMais
+        inicial={4}
+        rotulo="filiações"
+        itens={recentes.map((p, i) => (
+          <li key={i} className="flex items-center justify-between gap-3 py-2">
             <span className="inline-flex items-center gap-2">
               <span className="size-2.5 rounded-full" style={{ background: corPartido(p.partido) }} aria-hidden />
               <span className="font-medium text-ink">{p.partido}</span>
@@ -45,7 +49,8 @@ export function HistoricoPartidos({ periodos }: { periodos: PeriodoPartido[] }) 
             </span>
           </li>
         ))}
-      </ol>
+      />
+      </div>
     </div>
   );
 }

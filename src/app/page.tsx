@@ -12,7 +12,7 @@ export const revalidate = 86400;
 
 export default function Inicio() {
   const composicao = obterComposicao();
-  const votacoes = listarVotacoes().slice(0, 8);
+  const votacoes = listarVotacoes().slice(0, 5);
   const total = listarParlamentares().filter((p) => p.emExercicio).length;
 
   return (

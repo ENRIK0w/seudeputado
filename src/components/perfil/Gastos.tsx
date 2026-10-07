@@ -1,6 +1,7 @@
 import { reais, reaisCompacto } from "@/lib/formato";
 import type { Gastos as TGastos } from "@/lib/types";
 import { Contador } from "../Contador";
+import { ListaComMais } from "../ListaComMais";
 import { Barra, Metrica, Vazio } from "../ui";
 
 function titulo(s: string) {
@@ -45,8 +46,10 @@ export function Gastos({ gastos }: { gastos: TGastos }) {
       {gastos.porMes.length > 1 && <Mensal meses={gastos.porMes} />}
       <div>
         <h3 className="mb-3 text-sm text-muted">Com o que gastou</h3>
-        <ul className="space-y-3">
-          {gastos.porCategoria.slice(0, 8).map((c, i) => (
+        <ListaComMais
+          className="space-y-2.5"
+          rotulo="categorias"
+          itens={gastos.porCategoria.map((c, i) => (
             <li key={c.categoria}>
               <div className="mb-1 flex justify-between gap-3 text-sm">
                 <span className="truncate text-ink-2">{titulo(c.categoria)}</span>
@@ -55,21 +58,23 @@ export function Gastos({ gastos }: { gastos: TGastos }) {
               <Barra valor={c.total / maxCat} indice={i} />
             </li>
           ))}
-        </ul>
+        />
       </div>
       <div>
         <h3 className="mb-2 text-sm text-muted">Maiores fornecedores</h3>
-        <ol className="divisor text-sm">
-          {gastos.topFornecedores.slice(0, 6).map((f, i) => (
-            <li key={f.documento + i} className="flex justify-between gap-3 py-2">
-              <span className="min-w-0">
-                <span className="block truncate text-ink">{f.fornecedor}</span>
-                {f.documento && f.documento !== f.fornecedor && <span className="text-xs text-muted">{f.documento}</span>}
+        <ListaComMais
+          className="divisor text-sm"
+          rotulo="fornecedores"
+          itens={gastos.topFornecedores.map((f, i) => (
+            <li key={f.documento + i} className="flex items-center justify-between gap-3 py-2">
+              <span className="min-w-0 truncate text-ink">
+                {f.fornecedor}
+                {f.documento && f.documento !== f.fornecedor && <span className="ml-1.5 text-xs text-muted">{f.documento}</span>}
               </span>
-              <span className="shrink-0 text-ink-2">{reais(f.total)}</span>
+              <span className="shrink-0 text-ink-2">{reaisCompacto(f.total)}</span>
             </li>
           ))}
-        </ol>
+        />
       </div>
     </div>
   );

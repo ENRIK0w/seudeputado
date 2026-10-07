@@ -6,6 +6,7 @@ import { urlDados } from "@/lib/caminho";
 import { numero, pct, reais, reaisCompacto } from "@/lib/formato";
 import { buscarCidades, type MunicipioIndice } from "@/lib/buscaCidade";
 import type { ItemBusca, MunicipioDados } from "@/lib/types";
+import { ListaComMais } from "./ListaComMais";
 import { Avatar, Barra, CabecalhoCard, Card, Partido, Vazio } from "./ui";
 
 export function MinhaCidade() {
@@ -129,8 +130,11 @@ export function MinhaCidade() {
                   <Vazio>Nenhuma emenda individual identificada para este município.</Vazio>
                 </div>
               ) : (
-                <ul className="mt-5 space-y-3">
-                  {mun.emendas.slice(0, 12).map((e) => (
+                <div className="mt-5">
+                <ListaComMais
+                  className="space-y-2.5"
+                  rotulo="parlamentares"
+                  itens={mun.emendas.map((e) => (
                     <li key={e.slug}>
                       <Link href={`/p/${e.slug}/`} className="block hover:opacity-90">
                         <div className="mb-1 flex justify-between gap-3 text-sm">
@@ -145,7 +149,8 @@ export function MinhaCidade() {
                       </Link>
                     </li>
                   ))}
-                </ul>
+                />
+                </div>
               )}
             </Card>
 
@@ -154,10 +159,11 @@ export function MinhaCidade() {
               {mun.maisVotados.length === 0 ? (
                 <Vazio>Sem resultado eleitoral cruzado para este município.</Vazio>
               ) : (
-                <ol className="divisor">
-                  {mun.maisVotados.slice(0, 10).map((m, i) => (
+                <ListaComMais
+                  rotulo="parlamentares"
+                  itens={mun.maisVotados.map((m, i) => (
                     <li key={m.slug}>
-                      <Link href={`/p/${m.slug}/`} className="flex items-center gap-3 py-2.5 hover:opacity-90">
+                      <Link href={`/p/${m.slug}/`} className="pressionavel flex items-center gap-3 py-2 hover:opacity-90">
                         <span className="w-4 text-sm text-muted">{i + 1}</span>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-ink">{m.nome}</span>
@@ -172,15 +178,19 @@ export function MinhaCidade() {
                       </Link>
                     </li>
                   ))}
-                </ol>
+                />
               )}
             </Card>
           </div>
 
           <Card>
             <CabecalhoCard titulo={`Quem representa ${mun.uf} em Brasília`} aside={`${representantes.length} parlamentares`} />
-            <ul className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3">
-              {representantes
+            <ListaComMais
+              className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3"
+              inicial={9}
+              passo={18}
+              rotulo="parlamentares"
+              itens={representantes
                 .sort((a, b) => (a.casa === b.casa ? a.nome.localeCompare(b.nome, "pt-BR") : a.casa === "senado" ? -1 : 1))
                 .map((r) => (
                   <li key={r.slug}>
@@ -196,7 +206,7 @@ export function MinhaCidade() {
                     </Link>
                   </li>
                 ))}
-            </ul>
+            />
           </Card>
         </>
       )}

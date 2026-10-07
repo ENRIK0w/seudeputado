@@ -294,7 +294,21 @@ export async function coletarCamara(): Promise<ColetaCasa> {
     dataApresentacao: string;
     ultimoStatus_descricaoSituacao?: string | null;
   };
-  type AutorArq = { idProposicao: number; idDeputadoAutor?: number | null; ordemAssinatura?: number; proponente?: number };
+  // Atenção: o arquivo traz números como texto ("ordemAssinatura": "1") — sempre converter.
+  type AutorArq = {
+    idProposicao: number | string;
+    idDeputadoAutor?: number | string | null;
+    uriAutor?: string | null;
+    ordemAssinatura?: number | string | null;
+    proponente?: number | string | null;
+  };
+  // Deputado autor: pelo id ou, se vier vazio, pelo link (".../deputados/204554")
+  const deputadoDoAutor = (a: AutorArq) => {
+    const id = Number(a.idDeputadoAutor);
+    if (id) return id;
+    const m = a.uriAutor?.match(/\/deputados\/(\d+)/);
+    return m ? Number(m[1]) : null;
+  };
   const props = new Map<number, PropArq>();
   const autores: AutorArq[] = [];
   for (const ano of anos) {
@@ -310,20 +324,41 @@ export async function coletarCamara(): Promise<ColetaCasa> {
   }
   console.log(`  · votações sem ementa do projeto: ${semEmenta} de ${votacoes.length}`);
 
+  // Um registro por (deputado, proposição); autor principal = 1º a assinar.
   const propsPorSlug: Record<string, ProposicaoResumo[]> = {};
+  const vistos = new Map<string, ProposicaoResumo>();
+  let autoresSemDeputado = 0;
   for (const a of autores) {
-    const p = props.get(a.idProposicao);
-    if (!p || !a.idDeputadoAutor) continue;
-    (propsPorSlug[slugDe(a.idDeputadoAutor)] ??= []).push({
+    const p = props.get(Number(a.idProposicao));
+    if (!p) continue;
+    const idDep = deputadoDoAutor(a);
+    if (!idDep) {
+      if (/deputad/i.test(a.uriAutor ?? "")) autoresSemDeputado++;
+      continue;
+    }
+    const principal = Number(a.ordemAssinatura) === 1;
+    const chave = `${idDep}|${p.id}`;
+    const ja = vistos.get(chave);
+    if (ja) {
+      ja.principal ||= principal;
+      continue;
+    }
+    const item: ProposicaoResumo = {
       id: `camara-${p.id}`,
       sigla: `${p.siglaTipo} ${p.numero}/${p.ano}`,
       ementa: p.ementa,
       data: dataISO(p.dataApresentacao)!,
       situacao: p.ultimoStatus_descricaoSituacao ?? null,
       url: `https://www.camara.leg.br/propostas-legislativas/${p.id}`,
-      principal: a.ordemAssinatura === 1 || a.proponente === 1,
-    });
+      principal,
+    };
+    vistos.set(chave, item);
+    (propsPorSlug[slugDe(idDep)] ??= []).push(item);
   }
+  const totalProps = Object.values(propsPorSlug).flat();
+  console.log(
+    `  · autorias: ${totalProps.length} (${totalProps.filter((x) => x.principal).length} como autor principal); autores deputados sem id: ${autoresSemDeputado}`,
+  );
 
   // ---- Cota parlamentar (CEAP) ----
   console.log("Câmara: cota parlamentar");

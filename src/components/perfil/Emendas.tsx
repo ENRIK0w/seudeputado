@@ -1,6 +1,7 @@
 import { numero, reais, reaisCompacto } from "@/lib/formato";
 import type { EmendaResumo } from "@/lib/types";
 import { Contador } from "../Contador";
+import { ListaComMais } from "../ListaComMais";
 import { Barra, Metrica, Vazio } from "../ui";
 
 export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
@@ -55,8 +56,10 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
 
       <div>
         <h3 className="mb-3 text-sm text-muted">Para onde foi</h3>
-        <ul className="space-y-3">
-          {porMunicipio.slice(0, 8).map(([nome, v], i) => (
+        <ListaComMais
+          className="space-y-2.5"
+          rotulo="destinos"
+          itens={porMunicipio.map(([nome, v], i) => (
             <li key={nome}>
               <div className="mb-1 flex justify-between gap-3 text-sm">
                 <span className="truncate text-ink-2">{nome}</span>
@@ -65,8 +68,7 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
               <Barra valor={v.empenhado / maxMun} indice={i} />
             </li>
           ))}
-        </ul>
-        {porMunicipio.length > 8 && <p className="mt-2 text-xs text-muted">+ {porMunicipio.length - 8} destinos</p>}
+        />
       </div>
 
       <div>
