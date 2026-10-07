@@ -45,7 +45,7 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
         {v.proposicao && (
           <p className="mt-3 text-sm font-medium text-ink-2">
             {v.proposicaoUrl ? (
-              <a href={v.proposicaoUrl} target="_blank" rel="noreferrer" className="ref-link" title={`Abrir ${v.proposicao} na fonte oficial`}>
+              <a href={v.proposicaoUrl} target="_blank" rel="noreferrer" className="ref-link ref-pilula" title={`Abrir ${v.proposicao} na fonte oficial`}>
                 {v.proposicao}
               </a>
             ) : (
