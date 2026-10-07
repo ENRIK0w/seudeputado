@@ -146,7 +146,11 @@ function montarMunicipios(
     const listaEmendas = [...emendas].map(([slug, e]) => ({ ...info(slug), ...e })).sort((a, b) => b.pago - a.pago);
     out[m.ibge] = {
       ...m,
-      maisVotados: (maisVotados[m.ibge] ?? []).slice(0, 15).map((v) => ({ ...info(v.slug), votos: v.votos, pct: v.pct })),
+      // O resultado do TSE pode citar quem já não está na lista atual (fim de mandato): ignora.
+      maisVotados: (maisVotados[m.ibge] ?? [])
+        .filter((v) => porSlug.has(v.slug))
+        .slice(0, 15)
+        .map((v) => ({ ...info(v.slug), votos: v.votos, pct: v.pct })),
       emendas: listaEmendas,
       totalEmendasPago: Math.round(listaEmendas.reduce((s, e) => s + e.pago, 0)),
     };
