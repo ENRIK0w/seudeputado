@@ -346,6 +346,18 @@ function main() {
     }
   }
 
+  // Alguns projetos de exemplo foram a voto em plenário (liga projeto ↔ votação)
+  const votados = votacoes.filter((v) => v.casa === "camara").slice(0, 12);
+  parlamentares.forEach((p, i) => {
+    const pr = p.proposicoes[0];
+    if (pr && i % 7 === 0) {
+      const v = votados[i % votados.length];
+      pr.sigla = v.proposicao!;
+      pr.id = `exemplo-${v.id}`;
+      for (const outro of parlamentares.slice(i + 1, i + 4)) outro.proposicoes.push({ ...pr, principal: false });
+    }
+  });
+
   return gravarDataset({
     parlamentares,
     votacoes,
