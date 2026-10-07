@@ -65,9 +65,11 @@ jobs:
 
       - name: Publicar na Vercel
         run: |
+          set -o pipefail
           npx --yes vercel@62 pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx --yes vercel@62 build --prod --token="$VERCEL_TOKEN"
-          npx --yes vercel@62 deploy --prebuilt --prod --token="$VERCEL_TOKEN" | tee deploy.txt
+          # --archive=tgz envia um pacote só: o plano grátis limita a 5.000 arquivos enviados por dia.
+          npx --yes vercel@62 deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN" | tee deploy.txt
           echo "Publicado: $(tail -1 deploy.txt)" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
