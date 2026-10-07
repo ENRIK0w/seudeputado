@@ -71,7 +71,7 @@ export default async function PaginaProjeto({ params }: PageProps<"/projetos/[id
       </header>
 
       <Card className="self-start">
-        <CabecalhoCard numero="01" titulo="Votações em plenário" aside={votacoes.length ? `${votacoes.length}` : undefined} />
+        <CabecalhoCard titulo="Votações em plenário" aside={votacoes.length ? `${votacoes.length}` : undefined} />
         {votacoes.length ? (
           <div className="divisor -my-3">
             {votacoes.map((v) => (
@@ -87,7 +87,7 @@ export default async function PaginaProjeto({ params }: PageProps<"/projetos/[id
       </Card>
 
       <Card className="self-start">
-        <CabecalhoCard numero="02" titulo="Quem assina" aside={`${autores.length}`} />
+        <CabecalhoCard titulo="Quem assina" aside={`${autores.length}`} />
         <ListaComMais
           inicial={8}
           passo={20}

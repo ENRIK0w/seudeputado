@@ -125,13 +125,13 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
 
       <div className="grid min-w-0 content-start gap-4">
         <Card>
-          <CabecalhoCard numero="01" titulo="Como votou" aside={`${numero(m.votacoesConsideradas)} votações`} />
+          <CabecalhoCard titulo="Como votou" aside={`${numero(m.votacoesConsideradas)} votações`} />
           <HistoricoVotos slug={p.slug} recentes={p.votosRecentes} descricoes={descricoes} />
         </Card>
 
         <div className="grid min-w-0 items-start gap-4 xl:grid-cols-2">
           <Card>
-            <CabecalhoCard numero="02" titulo="Onde foi votado" aside={p.eleicao ? `${p.eleicao.cargo} · ${p.eleicao.ano}` : undefined} />
+            <CabecalhoCard titulo="Onde foi votado" aside={p.eleicao ? `${p.eleicao.cargo} · ${p.eleicao.ano}` : undefined} />
             {p.eleicao ? (
               <>
                 <MapaEleitoral slug={p.slug} uf={p.uf} />
@@ -160,25 +160,25 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
           </Card>
 
           <Card>
-            <CabecalhoCard numero="03" titulo="Partidos" aside={`${p.historicoPartidos.length} ${p.historicoPartidos.length === 1 ? "partido" : "partidos"}`} />
+            <CabecalhoCard titulo="Partidos" aside={`${p.historicoPartidos.length} ${p.historicoPartidos.length === 1 ? "partido" : "partidos"}`} />
             <HistoricoPartidos periodos={p.historicoPartidos} />
           </Card>
         </div>
 
         <div className="grid min-w-0 items-start gap-4 xl:grid-cols-2">
           <Card>
-            <CabecalhoCard numero="04" titulo="Emendas" aside="desde 2023" />
+            <CabecalhoCard titulo="Emendas" aside="desde 2023" />
             <Emendas emendas={p.emendas} />
           </Card>
 
           <Card>
-            <CabecalhoCard numero="05" titulo="Cota parlamentar" aside="desde fev/2023" />
+            <CabecalhoCard titulo="Cota parlamentar" aside="desde fev/2023" />
             <Gastos gastos={p.gastos} />
           </Card>
         </div>
 
         <Card>
-          <CabecalhoCard numero="06" titulo="Projetos apresentados" aside="nesta legislatura" />
+          <CabecalhoCard titulo="Projetos apresentados" aside="nesta legislatura" />
           <Proposicoes proposicoes={p.proposicoes} />
         </Card>
       </div>

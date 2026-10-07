@@ -105,7 +105,7 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
       </Card>
 
       <Card>
-        <CabecalhoCard numero="01" titulo="Como cada partido votou" />
+        <CabecalhoCard titulo="Como cada partido votou" />
         <ul className="space-y-3">
           {v.porPartido.map((p, i) => {
             const t = p.sim + p.nao + p.outros;
@@ -142,7 +142,7 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
 
       {v.orientacoes.length > 0 ? (
         <Card>
-          <CabecalhoCard numero="02" titulo="Orientação das bancadas" />
+          <CabecalhoCard titulo="Orientação das bancadas" />
           <ul className="grid grid-cols-2 gap-x-4 text-sm">
             {v.orientacoes.map((o) => (
               <li key={o.bancada} className="flex justify-between gap-2 border-b border-line py-2">
@@ -157,13 +157,13 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
         </Card>
       ) : (
         <Card>
-          <CabecalhoCard numero="02" titulo="Orientação das bancadas" />
+          <CabecalhoCard titulo="Orientação das bancadas" />
           <p className="text-sm text-muted">O Senado não publica as orientações de bancada nos dados abertos.</p>
         </Card>
       )}
 
       <Card className="lg:col-span-2">
-        <CabecalhoCard numero="03" titulo="Voto a voto" aside={`${numero(Object.keys(v.votos).length)} votos registrados`} />
+        <CabecalhoCard titulo="Voto a voto" aside={`${numero(Object.keys(v.votos).length)} votos registrados`} />
         <VotoAVoto
           grupos={ORDEM.filter((t) => porVoto.has(t)).map((t) => ({
             voto: t,

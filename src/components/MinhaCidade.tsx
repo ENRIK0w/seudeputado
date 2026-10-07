@@ -123,7 +123,7 @@ export function MinhaCidade() {
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CabecalhoCard numero="01" titulo="Emendas recebidas" aside="desde 2023" />
+              <CabecalhoCard titulo="Emendas recebidas" aside="desde 2023" />
               <div className="numero text-[40px] leading-none">{reaisCompacto(mun.totalEmendasPago)}</div>
               <p className="mt-1 text-sm text-muted">pagos por {mun.emendas.length} parlamentares</p>
               {mun.emendas.length === 0 ? (
@@ -156,7 +156,7 @@ export function MinhaCidade() {
             </Card>
 
             <Card>
-              <CabecalhoCard numero="02" titulo="Mais votados aqui" aside="última eleição" />
+              <CabecalhoCard titulo="Mais votados aqui" aside="última eleição" />
               {mun.maisVotados.length === 0 ? (
                 <Vazio>Sem resultado eleitoral cruzado para este município.</Vazio>
               ) : (
@@ -185,7 +185,7 @@ export function MinhaCidade() {
           </div>
 
           <Card>
-            <CabecalhoCard numero="03" titulo={`Quem representa ${mun.uf} em Brasília`} aside={`${representantes.length} parlamentares`} />
+            <CabecalhoCard titulo={`Quem representa ${mun.uf} em Brasília`} aside={`${representantes.length} parlamentares`} />
             <ListaComMais
               className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3"
               inicial={9}

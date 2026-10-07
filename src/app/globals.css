@@ -104,12 +104,21 @@ html {
   background: var(--bg);
 }
 
-body {
+/* Luz ambiente sutil atrás de tudo, numa camada fixa própria: com
+   background-attachment: fixed o navegador repintava a página inteira a cada quadro. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(900px 520px at -10% -8%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 62%),
-    radial-gradient(760px 480px at 110% 4%, color-mix(in srgb, var(--centro) 9%, transparent), transparent 62%),
-    var(--bg);
-  background-attachment: fixed;
+    radial-gradient(760px 480px at 110% 4%, color-mix(in srgb, var(--centro) 9%, transparent), transparent 62%);
+}
+
+/* O fundo fica no <html>; o body é transparente para deixar a luz ambiente aparecer */
+body {
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 15px;
@@ -118,7 +127,7 @@ body {
   font-feature-settings: "cv11" 1, "ss01" 1, "tnum" 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: background-color 250ms ease, color 250ms ease;
+  transition: color 250ms ease;
 }
 
 /* ---- Tipografia ---- */
@@ -511,17 +520,20 @@ html[data-anim] [data-animar]:not([data-visivel]) .anim-barra {
   transition-delay: calc(var(--i, 0) * 45ms);
 }
 
-html[data-anim] [data-animar]:not([data-visivel]) .anim-ponto {
-  opacity: 0;
-  transform: scale(0.2);
+/* Hemiciclo: um "leque" que revela as cadeiras da esquerda para a direita.
+   Uma animação só no SVG inteiro (animar centenas de bolinhas travava a tela). */
+@property --varredura {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 181deg;
 }
-.anim-ponto {
-  transform-box: fill-box;
-  transform-origin: center;
-  transition:
-    opacity 380ms ease-out,
-    transform 520ms var(--mola);
-  transition-delay: calc(var(--i, 0) * 1.4ms);
+html[data-anim] .anim-varredura[data-animar]:not([data-visivel]) {
+  --varredura: 0deg;
+}
+.anim-varredura {
+  -webkit-mask-image: conic-gradient(from 270deg at 50% 100%, #000 var(--varredura), transparent calc(var(--varredura) + 6deg));
+  mask-image: conic-gradient(from 270deg at 50% 100%, #000 var(--varredura), transparent calc(var(--varredura) + 6deg));
+  transition: --varredura 1400ms cubic-bezier(0.45, 0, 0.15, 1);
 }
 
 html[data-anim] [data-animar]:not([data-visivel]) .anim-quadrado {

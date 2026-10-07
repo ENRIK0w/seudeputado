@@ -35,7 +35,7 @@ export default function Inicio() {
       <AgendaSemana />
 
       <Card className="self-start">
-        <CabecalhoCard numero="01" titulo="Composição" />
+        <CabecalhoCard titulo="Composição" />
         <Abas
           abas={composicao.map((c) => ({
             rotulo: c.casa === "camara" ? "Câmara dos Deputados" : "Senado Federal",
@@ -52,7 +52,7 @@ export default function Inicio() {
 
       <div className="grid content-start gap-4">
         <Card>
-          <CabecalhoCard numero="02" titulo="Últimas votações" aside={<LinkSeta href="/votacoes/">ver todas</LinkSeta>} />
+          <CabecalhoCard titulo="Últimas votações" aside={<LinkSeta href="/votacoes/">ver todas</LinkSeta>} />
           <div className="divisor -my-3">
             {votacoes.map((v) => (
               <VotacaoItem key={v.id} v={v} />
@@ -60,7 +60,7 @@ export default function Inicio() {
           </div>
         </Card>
         <Card>
-          <CabecalhoCard numero="03" titulo="O que chegou na sua cidade?" />
+          <CabecalhoCard titulo="O que chegou na sua cidade?" />
           <p className="text-ink-2">Busque o seu município e veja quais parlamentares mandaram emendas para lá e quem foi mais votado.</p>
           <Link
             href="/cidade/"

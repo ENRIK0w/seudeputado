@@ -6,14 +6,11 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
   return <section className={`card p-5 ${className}`}>{children}</section>;
 }
 
-/** Cabeçalho de seção: número opcional ("01"), título em serifa e complemento à direita. */
-export function CabecalhoCard({ titulo, aside, numero }: { titulo: ReactNode; aside?: ReactNode; numero?: string }) {
+/** Cabeçalho de seção: título em serifa e complemento à direita. */
+export function CabecalhoCard({ titulo, aside }: { titulo: ReactNode; aside?: ReactNode }) {
   return (
     <div className="mb-5 flex items-baseline justify-between gap-3 border-b border-line pb-3">
-      <h2 className="titulo flex items-baseline gap-2.5 text-[21px] text-ink">
-        {numero && <span className="secao-num text-[15px]">{numero}</span>}
-        {titulo}
-      </h2>
+      <h2 className="titulo text-[21px] text-ink">{titulo}</h2>
       {aside && <div className="shrink-0 text-sm text-muted">{aside}</div>}
     </div>
   );

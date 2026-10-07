@@ -35,9 +35,9 @@ export function Hemiciclo({ composicao }: { composicao: Composicao }) {
   const vb = 1 + raioPonto * 2;
 
   return (
-    <svg viewBox={`${-vb} ${-vb} ${vb * 2} ${vb + raioPonto * 2}`} className="w-full" data-animar role="img" aria-label={`Composição: ${partidos.map((p) => `${p.partido} ${p.cadeiras}`).join(", ")}`}>
+    <svg viewBox={`${-vb} ${-vb} ${vb * 2} ${vb + raioPonto * 2}`} className="anim-varredura w-full" data-animar role="img" aria-label={`Composição: ${partidos.map((p) => `${p.partido} ${p.cadeiras}`).join(", ")}`}>
       {pontos.map((pt, i) => (
-        <circle key={i} className="anim-ponto" style={{ ["--i" as string]: i }} cx={pt.x} cy={pt.y} r={raioPonto} fill={corPartido(sequencia[i])}>
+        <circle key={i} cx={pt.x} cy={pt.y} r={raioPonto} fill={corPartido(sequencia[i])}>
           <title>{sequencia[i]}</title>
         </circle>
       ))}
