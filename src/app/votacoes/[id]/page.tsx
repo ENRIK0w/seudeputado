@@ -37,13 +37,19 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
   return (
     <Pagina className="grid gap-4 lg:grid-cols-2">
       <Card className="lg:col-span-2">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-          <span className="rounded-full border border-line px-2.5 py-0.5">{v.casa === "camara" ? "Câmara dos Deputados" : "Senado Federal"}</span>
+        <div className="rotulo flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          <span>{v.casa === "camara" ? "Câmara dos Deputados" : "Senado Federal"}</span>
+          <span aria-hidden>·</span>
           <span>{data(v.data, { day: "numeric", month: "long", year: "numeric" })}</span>
-          {v.aprovada != null && <span className={v.aprovada ? "text-sim" : "text-nao"}>● {v.aprovada ? "Aprovada" : "Rejeitada"}</span>}
+          {v.aprovada != null && (
+            <span className={`inline-flex items-center gap-1.5 ${v.aprovada ? "text-sim" : "text-nao"}`}>
+              <span className="size-1.5 rounded-full bg-current" aria-hidden />
+              {v.aprovada ? "Aprovada" : "Rejeitada"}
+            </span>
+          )}
         </div>
         {v.proposicao && (
-          <p className="mt-3 text-sm font-medium text-ink-2">
+          <p className="mt-4 text-sm font-medium text-ink-2">
             {v.proposicaoUrl ? (
               <a href={v.proposicaoUrl} target="_blank" rel="noreferrer" className="ref-link ref-pilula" title={`Abrir ${v.proposicao} na fonte oficial`}>
                 {v.proposicao}
@@ -53,13 +59,13 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
             )}
           </p>
         )}
-        <h1 className="titulo mt-1 text-[28px] leading-tight text-ink">
+        <h1 className="titulo texto-longo mt-3 text-[28px] leading-[1.12] tracking-[-0.018em] text-ink sm:text-[34px]">
           <TextoReferenciado texto={limparDescricao(v.descricao)} referencias={v.referencias} />
         </h1>
         {v.ementa && (
-          <div className="mt-4 rounded-2xl bg-card-2 px-4 py-3">
-            <p className="text-xs font-medium tracking-wide text-muted uppercase">Do que se trata{v.proposicao ? ` · ${v.proposicao}` : ""}</p>
-            <p className="mt-1 text-[15px] leading-relaxed text-ink">
+          <div className="texto-longo mt-5 border-l-2 border-accent pl-4">
+            <p className="rotulo">Do que se trata{v.proposicao ? ` · ${v.proposicao}` : ""}</p>
+            <p className="mt-1.5 text-[15.5px] leading-relaxed text-ink-2">
               <TextoReferenciado texto={v.ementa} referencias={v.referencias} />
             </p>
           </div>
@@ -67,7 +73,7 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
 
         <div className="mt-6 flex items-end justify-between">
           <div>
-            <div className="text-sm text-ink-2">Sim</div>
+            <div className="rotulo">Sim</div>
             <div className="numero text-[44px] leading-none text-ink">
               <Contador valor={v.placar.sim} />
             </div>
@@ -78,7 +84,7 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
             {v.placar.ausente > 0 && <div>{v.placar.ausente} não votaram</div>}
           </div>
           <div className="text-right">
-            <div className="text-sm text-ink-2">Não</div>
+            <div className="rotulo">Não</div>
             <div className="numero text-[44px] leading-none text-ink">
               <Contador valor={v.placar.nao} />
             </div>
@@ -99,7 +105,7 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
       </Card>
 
       <Card>
-        <CabecalhoCard titulo="Como cada partido votou" />
+        <CabecalhoCard numero="01" titulo="Como cada partido votou" />
         <ul className="space-y-3">
           {v.porPartido.map((p, i) => {
             const t = p.sim + p.nao + p.outros;
@@ -136,7 +142,7 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
 
       {v.orientacoes.length > 0 ? (
         <Card>
-          <CabecalhoCard titulo="Orientação das bancadas" />
+          <CabecalhoCard numero="02" titulo="Orientação das bancadas" />
           <ul className="grid grid-cols-2 gap-x-4 text-sm">
             {v.orientacoes.map((o) => (
               <li key={o.bancada} className="flex justify-between gap-2 border-b border-line py-2">
@@ -151,13 +157,13 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
         </Card>
       ) : (
         <Card>
-          <CabecalhoCard titulo="Orientação das bancadas" />
+          <CabecalhoCard numero="02" titulo="Orientação das bancadas" />
           <p className="text-sm text-muted">O Senado não publica as orientações de bancada nos dados abertos.</p>
         </Card>
       )}
 
       <Card className="lg:col-span-2">
-        <CabecalhoCard titulo="Voto a voto" aside={`${numero(Object.keys(v.votos).length)} votos registrados`} />
+        <CabecalhoCard numero="03" titulo="Voto a voto" aside={`${numero(Object.keys(v.votos).length)} votos registrados`} />
         <VotoAVoto
           grupos={ORDEM.filter((t) => porVoto.has(t)).map((t) => ({
             voto: t,

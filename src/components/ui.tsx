@@ -6,11 +6,15 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
   return <section className={`card p-5 ${className}`}>{children}</section>;
 }
 
-export function CabecalhoCard({ titulo, aside }: { titulo: ReactNode; aside?: ReactNode }) {
+/** Cabeçalho de seção: número opcional ("01"), título em serifa e complemento à direita. */
+export function CabecalhoCard({ titulo, aside, numero }: { titulo: ReactNode; aside?: ReactNode; numero?: string }) {
   return (
-    <div className="mb-4 flex items-baseline justify-between gap-3">
-      <h2 className="text-[17px] font-medium text-ink">{titulo}</h2>
-      {aside && <div className="text-sm text-muted">{aside}</div>}
+    <div className="mb-5 flex items-baseline justify-between gap-3 border-b border-line pb-3">
+      <h2 className="titulo flex items-baseline gap-2.5 text-[21px] text-ink">
+        {numero && <span className="secao-num text-[15px]">{numero}</span>}
+        {titulo}
+      </h2>
+      {aside && <div className="shrink-0 text-sm text-muted">{aside}</div>}
     </div>
   );
 }
@@ -63,8 +67,8 @@ export function Barra({ valor, cor = "var(--accent)", altura = 4, indice = 0 }: 
 export function Metrica({ rotulo, valor, detalhe }: { rotulo: string; valor: ReactNode; detalhe?: ReactNode }) {
   return (
     <div>
-      <div className="text-sm text-muted">{rotulo}</div>
-      <div className="numero mt-1 text-[28px] leading-none text-ink">{valor}</div>
+      <div className="rotulo">{rotulo}</div>
+      <div className="numero mt-2 text-[30px] leading-none text-ink">{valor}</div>
       {detalhe && <div className="mt-1.5 text-xs text-muted">{detalhe}</div>}
     </div>
   );
@@ -72,12 +76,23 @@ export function Metrica({ rotulo, valor, detalhe }: { rotulo: string; valor: Rea
 
 export function LinkSeta({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="text-sm text-ink-2 underline-offset-4 hover:text-ink hover:underline">
+    <Link href={href} className="text-[13.5px] text-ink-2 underline-offset-4 hover:text-ink hover:underline">
       {children} →
     </Link>
   );
 }
 
 export function Vazio({ children }: { children: ReactNode }) {
-  return <p className="rounded-xl bg-card-2 px-4 py-6 text-center text-sm text-muted">{children}</p>;
+  return <p className="rounded-lg border border-dashed border-line px-4 py-6 text-center text-sm text-muted">{children}</p>;
+}
+
+/** Abertura das páginas de lista: chapéu, título grande em serifa e linha de apoio. */
+export function CabecalhoPagina({ rotulo, titulo, children }: { rotulo: string; titulo: ReactNode; children?: ReactNode }) {
+  return (
+    <header className="mb-8 border-b border-line pb-6">
+      <div className="rotulo">{rotulo}</div>
+      <h1 className="display mt-3 text-ink">{titulo}</h1>
+      {children && <p className="texto-longo mt-3 text-ink-2">{children}</p>}
+    </header>
+  );
 }

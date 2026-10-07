@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Card } from "@/components/ui";
+import { CabecalhoPagina } from "@/components/ui";
 import { obterMeta } from "@/lib/dados";
 import { data } from "@/lib/formato";
 import { Pagina } from "@/components/Pagina";
@@ -12,9 +12,9 @@ export default function Metodologia() {
   const meta = obterMeta();
   return (
     <Pagina>
-    <Card className="mx-auto max-w-3xl">
-      <h1 className="titulo text-[32px]">Metodologia e fontes</h1>
-      <div className="mt-4 space-y-4 leading-relaxed text-ink-2 [&_h2]:mt-8 [&_h2]:text-lg [&_h2]:font-medium [&_h2]:text-ink [&_strong]:text-ink">
+    <div className="mx-auto max-w-3xl">
+      <CabecalhoPagina rotulo="Sobre os dados" titulo={<>Metodologia <em>e</em> fontes</>} />
+      <div className="texto-longo space-y-4 text-[16px] leading-relaxed text-ink-2 [&_h2]:titulo [&_h2]:mt-10 [&_h2]:text-[22px] [&_h2]:text-ink [&_strong]:text-ink">
         <p>
           O Seu Deputado reúne dados públicos e oficiais. Não damos notas nem classificamos parlamentares como bons ou ruins:
           mostramos o que eles fizeram e de onde vem cada número. Os dados são atualizados uma vez por dia.
@@ -71,7 +71,7 @@ export default function Metodologia() {
         </ul>
         <p className="text-sm text-muted">Última atualização: {data(meta.geradoEm)}.</p>
       </div>
-    </Card>
+    </div>
     </Pagina>
   );
 }

@@ -42,19 +42,16 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
   const maxMun = porMunicipio[0]?.[1].empenhado || 1;
   const maxAno = Math.max(...porAno.map(([, v]) => v.empenhado), 1);
 
-  const chip = (ativo: boolean) =>
-    `pressionavel rounded-full border px-3 py-1 text-sm transition-colors ${ativo ? "border-ink bg-ink text-bg" : "border-line text-ink-2 hover:text-ink"}`;
-
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-2 text-sm text-muted">Área</h3>
+        <h3 className="rotulo mb-2.5">Área</h3>
         <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-          <button onClick={() => setArea(null)} className={`${chip(area === null)} shrink-0`}>
+          <button onClick={() => setArea(null)} className="chip pressionavel shrink-0" data-ativo={area === null}>
             Todas
           </button>
           {porFuncao.map(([f, v]) => (
-            <button key={f} onClick={() => setArea(area === f ? null : f)} className={`${chip(area === f)} shrink-0`} aria-pressed={area === f}>
+            <button key={f} onClick={() => setArea(area === f ? null : f)} className="chip pressionavel shrink-0" data-ativo={area === f} aria-pressed={area === f}>
               {f} <span className="opacity-70">{reaisCompacto(v.empenhado)}</span>
             </button>
           ))}
@@ -67,7 +64,7 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
       </div>
 
       <div>
-        <h3 className="mb-3 text-sm text-muted">Por ano — empenhado e pago{area ? ` · ${area}` : ""}</h3>
+        <h3 className="rotulo mb-3">Por ano — empenhado e pago{area ? ` · ${area}` : ""}</h3>
         <ul className="space-y-2.5">
           {porAno.map(([ano, v], i) => (
             <li key={ano} className="grid grid-cols-[40px_1fr_auto] items-center gap-3 text-sm">
@@ -99,7 +96,7 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
       </div>
 
       <div>
-        <h3 className="mb-3 text-sm text-muted">Para onde foi</h3>
+        <h3 className="rotulo mb-3">Para onde foi</h3>
         {/* key: ao trocar a área a lista volta aos primeiros destinos */}
         <ListaComMais
           key={area ?? "todas"}

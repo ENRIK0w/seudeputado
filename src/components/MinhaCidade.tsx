@@ -7,7 +7,7 @@ import { numero, pct, reais, reaisCompacto } from "@/lib/formato";
 import { buscarCidades, type MunicipioIndice } from "@/lib/buscaCidade";
 import type { ItemBusca, MunicipioDados } from "@/lib/types";
 import { ListaComMais } from "./ListaComMais";
-import { Avatar, Barra, CabecalhoCard, Card, Partido, Vazio } from "./ui";
+import { Avatar, Barra, CabecalhoCard, CabecalhoPagina, Card, Partido, Vazio } from "./ui";
 
 export function MinhaCidade() {
   const [entrada, setEntrada] = useState("");
@@ -55,11 +55,12 @@ export function MinhaCidade() {
 
   return (
     <div className="grid gap-4">
-      <Card>
-        <h1 className="titulo text-[32px] leading-tight">O que chegou na sua cidade</h1>
-        <p className="mt-2 text-ink-2">Digite o nome do município. Pode incluir o estado: &quot;Campinas SP&quot;.</p>
+      <div>
+        <CabecalhoPagina rotulo="Sua cidade" titulo={<>O que chegou <em>na sua cidade</em></>}>
+          Emendas enviadas e parlamentares mais votados em cada município. Digite o nome — pode incluir o estado: &quot;Campinas SP&quot;.
+        </CabecalhoPagina>
         <form
-          className="relative mt-4"
+          className="relative max-w-xl"
           role="search"
           onSubmit={(e) => {
             e.preventDefault();
@@ -87,10 +88,10 @@ export function MinhaCidade() {
             aria-expanded={sugestoes.length > 0}
             aria-controls="sugestoes-cidade"
             aria-label="Nome da cidade"
-            className="w-full rounded-full border border-line bg-card-2 px-4 py-3 text-[16px] text-ink outline-none placeholder:text-muted focus:border-accent"
+            className="w-full rounded-lg border border-line bg-card-2 px-4 py-3 text-[16px] text-ink outline-none placeholder:text-muted focus:border-accent"
           />
           {sugestoes.length > 0 && (
-            <ul id="sugestoes-cidade" role="listbox" className="popover card divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden !rounded-2xl shadow-2xl">
+            <ul id="sugestoes-cidade" role="listbox" className="popover card divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden !rounded-xl shadow-2xl">
               {sugestoes.map((c, i) => (
                 <li key={c[0]} role="option" aria-selected={i === destaque}>
                   <button
@@ -112,17 +113,17 @@ export function MinhaCidade() {
         {status === "carregando" && <p className="mt-3 text-sm text-muted">Carregando…</p>}
         {status === "erro" && <p className="mt-3 text-sm text-nao">Não foi possível carregar os dados. Tente de novo.</p>}
         {status === "sem-dados" && <p className="mt-3 text-sm text-muted">Ainda não temos dados para esse município.</p>}
-      </Card>
+      </div>
 
       {mun && (
         <>
-          <div className="px-1">
-            <p className="text-sm text-muted">{mun.uf}</p>
-            <h2 className="titulo text-[36px] leading-tight">{mun.nome}</h2>
+          <div className="mt-6">
+            <p className="rotulo">{mun.uf}</p>
+            <h2 className="titulo mt-2 text-[40px] leading-none tracking-[-0.02em]">{mun.nome}</h2>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CabecalhoCard titulo="Emendas recebidas" aside="desde 2023" />
+              <CabecalhoCard numero="01" titulo="Emendas recebidas" aside="desde 2023" />
               <div className="numero text-[40px] leading-none">{reaisCompacto(mun.totalEmendasPago)}</div>
               <p className="mt-1 text-sm text-muted">pagos por {mun.emendas.length} parlamentares</p>
               {mun.emendas.length === 0 ? (
@@ -155,7 +156,7 @@ export function MinhaCidade() {
             </Card>
 
             <Card>
-              <CabecalhoCard titulo="Mais votados aqui" aside="última eleição" />
+              <CabecalhoCard numero="02" titulo="Mais votados aqui" aside="última eleição" />
               {mun.maisVotados.length === 0 ? (
                 <Vazio>Sem resultado eleitoral cruzado para este município.</Vazio>
               ) : (
@@ -184,7 +185,7 @@ export function MinhaCidade() {
           </div>
 
           <Card>
-            <CabecalhoCard titulo={`Quem representa ${mun.uf} em Brasília`} aside={`${representantes.length} parlamentares`} />
+            <CabecalhoCard numero="03" titulo={`Quem representa ${mun.uf} em Brasília`} aside={`${representantes.length} parlamentares`} />
             <ListaComMais
               className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3"
               inicial={9}

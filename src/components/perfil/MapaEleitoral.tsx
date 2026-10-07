@@ -1,8 +1,6 @@
 "use client";
 
 import { geoArea, geoMercator, geoPath } from "d3-geo";
-import { scaleSequentialSqrt } from "d3-scale";
-import { interpolateRgb } from "d3-interpolate";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { useEffect, useMemo, useState } from "react";
 import { urlDados } from "@/lib/caminho";
@@ -57,7 +55,8 @@ export function MapaEleitoral({ slug, uf }: { slug: string; uf: string }) {
     const [[, y0], [, y1]] = path.bounds(geo);
     proj.translate([proj.translate()[0], proj.translate()[1] - y0]);
     const max = Math.max(...Object.values(mapa.municipios).map((m) => m.pct), 0.0001);
-    const escala = scaleSequentialSqrt(interpolateRgb("#1d2238", "#9db4ff")).domain([0, max]);
+    // Escala em raiz quadrada entre as duas cores do tema (CSS), para funcionar no claro e no escuro.
+    const escala = (v: number) => `color-mix(in oklab, var(--mapa-1) ${Math.round(Math.sqrt(Math.min(v / max, 1)) * 100)}%, var(--mapa-0))`;
     // Atraso de cada município proporcional à distância do reduto: a cor "se espalha" a partir dele.
     const reduto = geo.features.reduce((a, b) => ((mapa.municipios[b.properties.codarea]?.pct ?? 0) > (mapa.municipios[a.properties.codarea]?.pct ?? 0) ? b : a));
     const [rx, ry] = path.centroid(reduto);
@@ -84,9 +83,8 @@ export function MapaEleitoral({ slug, uf }: { slug: string; uf: string }) {
             <path
               key={f.properties.codarea}
               className="anim-area"
-              style={{ ["--i" as string]: atraso }}
+              style={{ ["--i" as string]: atraso, fill: m ? escala(m.pct) : "var(--card-2)" }}
               d={d}
-              fill={m ? escala(m.pct) : "var(--card-2)"}
               stroke={ativo ? "var(--ink)" : "var(--card)"}
               strokeWidth={ativo ? 1.5 : 0.25}
               onMouseMove={(e) => {

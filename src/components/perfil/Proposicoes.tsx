@@ -43,7 +43,8 @@ export function Proposicoes({ proposicoes }: { proposicoes: ProposicaoResumo[] }
           <button
             key={id}
             onClick={() => setFiltro(id)}
-            className={`pressionavel rounded-full border px-3 py-1 text-sm ${filtro === id ? "border-ink bg-ink text-bg" : "border-line text-ink-2 hover:text-ink"}`}
+            className="chip pressionavel"
+            data-ativo={filtro === id}
           >
             {rotulo} <span className="opacity-70">{n}</span>
           </button>

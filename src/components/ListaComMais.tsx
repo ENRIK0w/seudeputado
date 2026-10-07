@@ -30,11 +30,11 @@ export function ListaComMais({
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
           {restantes > 0 && (
             <>
-              <button onClick={() => setLimite((l) => l + passo)} className="pressionavel rounded-full border border-line px-3 py-1 text-ink-2 hover:text-ink">
+              <button onClick={() => setLimite((l) => l + passo)} className="chip pressionavel">
                 Ver mais
               </button>
               {restantes > passo && (
-                <button onClick={() => setLimite(total)} className="pressionavel rounded-full border border-line px-3 py-1 text-ink-2 hover:text-ink">
+                <button onClick={() => setLimite(total)} className="chip pressionavel">
                   Ver todos ({total})
                 </button>
               )}

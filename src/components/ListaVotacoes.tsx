@@ -39,7 +39,7 @@ export function ListaVotacoes({ votacoes }: { votacoes: VotacaoResumo[] }) {
         onChange={(e) => setQ(e.target.value)}
         placeholder="Buscar por tema ou número (ex.: PEC 45, reforma tributária)"
         aria-label="Buscar votação"
-        className="w-full rounded-full border border-line bg-card px-4 py-2.5 text-[15px] text-ink outline-none placeholder:text-muted focus:border-accent"
+        className="w-full rounded-lg border border-line bg-card px-4 py-2.5 text-[15px] text-ink outline-none placeholder:text-muted focus:border-accent"
       />
       <p className="mt-4 text-sm text-muted">{lista.length} votações nominais em plenário</p>
       <div className="card divisor mt-2 px-5">
@@ -48,7 +48,7 @@ export function ListaVotacoes({ votacoes }: { votacoes: VotacaoResumo[] }) {
         ))}
       </div>
       {lista.length > limite && (
-        <button onClick={() => setLimite((l) => l + 80)} className="mt-3 w-full rounded-full border border-line py-2.5 text-sm text-ink-2 hover:text-ink">
+        <button onClick={() => setLimite((l) => l + 80)} className="mt-3 w-full rounded-lg border border-line py-2.5 text-sm text-ink-2 hover:text-ink">
           Mostrar mais ({lista.length - limite})
         </button>
       )}

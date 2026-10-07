@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { Emendas } from "@/components/perfil/Emendas";
 import { Gastos } from "@/components/perfil/Gastos";
@@ -38,8 +39,8 @@ function MetricaBarra({ rotulo, valor, explicacao }: { rotulo: string; valor: nu
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm text-muted">{rotulo}</span>
-        <span className="numero text-2xl text-ink">
+        <span className="rotulo">{rotulo}</span>
+        <span className="numero text-[26px] leading-none text-ink">
           <Contador valor={valor} formato="pct0" />
         </span>
       </div>
@@ -65,27 +66,38 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
   const m = p.metricas;
   const ref = p.casa === "senado" ? "maioria do partido" : "orientação do partido";
 
+  const ficha: [string, ReactNode][] = [
+    ["Partido", <Partido key="p" sigla={p.partido} />],
+    ["Estado", p.uf],
+    ...(anos ? [["Idade", `${anos} anos`] as [string, string]] : []),
+    ...(p.naturalidade ? [["Natural de", p.naturalidade] as [string, string]] : []),
+    ...(p.escolaridade ? [["Escolaridade", p.escolaridade] as [string, string]] : []),
+  ];
+
   return (
-    <Pagina className="grid gap-4 lg:grid-cols-2">
-      <Card className="lg:col-span-2">
-        <div className="flex items-start gap-4">
-          <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={72} />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm text-muted">
+    <Pagina className="grid gap-x-10 gap-y-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+        <div className="flex items-center gap-4 lg:block">
+          <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={84} />
+          <div className="min-w-0 lg:mt-5">
+            <p className="rotulo">
               {cargo(p.casa, p.sexo)} · {p.uf}
-              {!p.emExercicio && <span className="ml-2 rounded-full bg-card-2 px-2 py-0.5 text-xs text-ink-2">fora do exercício</span>}
             </p>
-            <h1 className="titulo mt-0.5 text-[34px] leading-tight text-ink">{p.nome}</h1>
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <Partido sigla={p.partido} />
-              {anos && <span className="text-sm text-muted">{anos} anos</span>}
-              {p.naturalidade && <span className="text-sm text-muted">nasceu em {p.naturalidade}</span>}
-              {p.escolaridade && <span className="text-sm text-muted">{p.escolaridade}</span>}
-            </div>
+            <h1 className="titulo mt-2 text-[34px] leading-[1.05] tracking-[-0.02em] text-ink lg:text-[40px]">{p.nome}</h1>
+            {!p.emExercicio && <span className="mt-2 inline-block rounded-md bg-card-2 px-2 py-0.5 text-xs text-ink-2">fora do exercício</span>}
           </div>
         </div>
 
-        <div className="mt-6 grid gap-6 sm:grid-cols-3">
+        <dl className="divisor mt-6 border-y border-line text-sm">
+          {ficha.map(([k, v]) => (
+            <div key={k} className="flex items-baseline justify-between gap-4 py-2.5">
+              <dt className="text-muted">{k}</dt>
+              <dd className="min-w-0 text-right text-ink">{v}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="mt-6 space-y-5">
           <MetricaBarra rotulo="Participação" valor={m.participacao} explicacao={`votou em ${pct(m.participacao, 0)} das ${numero(m.votacoesConsideradas)} votações nominais no exercício do mandato`} />
           <MetricaBarra rotulo="Fidelidade partidária" valor={m.fidelidadePartidaria} explicacao={`votos iguais à ${ref}`} />
           <MetricaBarra
@@ -95,75 +107,81 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
           />
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-5 sm:grid-cols-4">
-          <Metrica rotulo="Projetos (autor)" valor={<Contador valor={m.proposicoesApresentadas} />} />
-          <Metrica rotulo="Cota parlamentar" valor={<Contador valor={m.gastoCotaTotal} formato="reaisCompacto" />} />
-          <Metrica rotulo="Emendas pagas" valor={<Contador valor={m.emendasPagasTotal} formato="reaisCompacto" />} />
-          <Metrica rotulo={p.eleicao ? `Votos em ${p.eleicao.ano}` : "Votos"} valor={<Contador valor={p.eleicao?.votosTotais ?? null} />} />
+        <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-5 border-t border-line pt-5">
+          <Metrica rotulo="Projetos" valor={<Contador valor={m.proposicoesApresentadas} />} detalhe="como autor" />
+          <Metrica rotulo="Cota" valor={<Contador valor={m.gastoCotaTotal} formato="reaisCompacto" />} detalhe="na legislatura" />
+          <Metrica rotulo="Emendas" valor={<Contador valor={m.emendasPagasTotal} formato="reaisCompacto" />} detalhe="pagas" />
+          <Metrica rotulo="Votos" valor={<Contador valor={p.eleicao?.votosTotais ?? null} />} detalhe={p.eleicao ? `eleição de ${p.eleicao.ano}` : undefined} />
         </div>
 
-        <p className="mt-5 text-xs text-muted">
+        <p className="mt-6 text-xs text-muted">
           Fonte oficial:{" "}
           <a href={p.urlOficial} target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-ink">
             {p.casa === "camara" ? "camara.leg.br" : "senado.leg.br"}
           </a>
-          {p.email && <> · {p.email}</>}
+          {p.email && <span className="block truncate">{p.email}</span>}
         </p>
-      </Card>
+      </aside>
 
-      <Card className="lg:col-span-2">
-        <CabecalhoCard titulo="Como votou" aside={`${numero(m.votacoesConsideradas)} votações`} />
-        <HistoricoVotos slug={p.slug} recentes={p.votosRecentes} descricoes={descricoes} />
-      </Card>
+      <div className="grid min-w-0 content-start gap-4">
+        <Card>
+          <CabecalhoCard numero="01" titulo="Como votou" aside={`${numero(m.votacoesConsideradas)} votações`} />
+          <HistoricoVotos slug={p.slug} recentes={p.votosRecentes} descricoes={descricoes} />
+        </Card>
 
-      <Card>
-        <CabecalhoCard titulo="Onde foi votado" aside={p.eleicao ? `${p.eleicao.cargo} · ${p.eleicao.ano}` : undefined} />
-        {p.eleicao ? (
-          <>
-            <MapaEleitoral slug={p.slug} uf={p.uf} />
-            <h3 className="mt-5 mb-2 text-sm text-muted">Municípios com mais votos</h3>
-            <ol className="divisor text-sm">
-              {p.eleicao.topMunicipios.slice(0, 5).map((t, i) => (
-                <li key={t.ibge} className="flex justify-between gap-3 py-2">
-                  <span className="text-ink">
-                    <span className="mr-2 text-muted">{i + 1}</span>
-                    {t.nome}
-                  </span>
-                  <span className="text-ink-2">
-                    {numero(t.votos)} <span className="text-muted">· {pct(t.pct)}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-4 grid grid-cols-2 gap-4 border-t border-line pt-4">
-              <Metrica rotulo="Patrimônio declarado" valor={p.eleicao.patrimonio != null ? reaisCompacto(p.eleicao.patrimonio) : "—"} detalhe={`ao TSE em ${p.eleicao.ano}`} />
-              <Metrica rotulo="Situação na eleição" valor={<span className="text-lg">{situacaoEleitoral(p.eleicao.situacao)}</span>} />
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-muted">Resultado eleitoral ainda não cruzado com o TSE.</p>
-        )}
-      </Card>
+        <div className="grid min-w-0 items-start gap-4 xl:grid-cols-2">
+          <Card>
+            <CabecalhoCard numero="02" titulo="Onde foi votado" aside={p.eleicao ? `${p.eleicao.cargo} · ${p.eleicao.ano}` : undefined} />
+            {p.eleicao ? (
+              <>
+                <MapaEleitoral slug={p.slug} uf={p.uf} />
+                <h3 className="rotulo mt-6 mb-2">Municípios com mais votos</h3>
+                <ol className="divisor text-sm">
+                  {p.eleicao.topMunicipios.slice(0, 5).map((t, i) => (
+                    <li key={t.ibge} className="flex justify-between gap-3 py-2">
+                      <span className="text-ink">
+                        <span className="secao-num mr-2.5">{i + 1}</span>
+                        {t.nome}
+                      </span>
+                      <span className="text-ink-2">
+                        {numero(t.votos)} <span className="text-muted">· {pct(t.pct)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+                <div className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5">
+                  <Metrica rotulo="Patrimônio" valor={p.eleicao.patrimonio != null ? reaisCompacto(p.eleicao.patrimonio) : "—"} detalhe={`declarado ao TSE em ${p.eleicao.ano}`} />
+                  <Metrica rotulo="Situação" valor={<span className="text-lg">{situacaoEleitoral(p.eleicao.situacao)}</span>} />
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted">Resultado eleitoral ainda não cruzado com o TSE.</p>
+            )}
+          </Card>
 
-      <Card>
-        <CabecalhoCard titulo="Histórico de partidos" aside={`${p.historicoPartidos.length} ${p.historicoPartidos.length === 1 ? "partido" : "partidos"}`} />
-        <HistoricoPartidos periodos={p.historicoPartidos} />
-      </Card>
+          <Card>
+            <CabecalhoCard numero="03" titulo="Partidos" aside={`${p.historicoPartidos.length} ${p.historicoPartidos.length === 1 ? "partido" : "partidos"}`} />
+            <HistoricoPartidos periodos={p.historicoPartidos} />
+          </Card>
+        </div>
 
-      <Card>
-        <CabecalhoCard titulo="Emendas parlamentares" aside="desde 2023" />
-        <Emendas emendas={p.emendas} />
-      </Card>
+        <div className="grid min-w-0 items-start gap-4 xl:grid-cols-2">
+          <Card>
+            <CabecalhoCard numero="04" titulo="Emendas" aside="desde 2023" />
+            <Emendas emendas={p.emendas} />
+          </Card>
 
-      <Card>
-        <CabecalhoCard titulo="Cota parlamentar" aside="desde fev/2023" />
-        <Gastos gastos={p.gastos} />
-      </Card>
+          <Card>
+            <CabecalhoCard numero="05" titulo="Cota parlamentar" aside="desde fev/2023" />
+            <Gastos gastos={p.gastos} />
+          </Card>
+        </div>
 
-      <Card className="lg:col-span-2">
-        <CabecalhoCard titulo="Projetos apresentados" aside="nesta legislatura" />
-        <Proposicoes proposicoes={p.proposicoes} />
-      </Card>
+        <Card>
+          <CabecalhoCard numero="06" titulo="Projetos apresentados" aside="nesta legislatura" />
+          <Proposicoes proposicoes={p.proposicoes} />
+        </Card>
+      </div>
     </Pagina>
   );
 }

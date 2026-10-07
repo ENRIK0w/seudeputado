@@ -127,14 +127,15 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
         </div>
       )}
 
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {FILTROS.map((f) => (
           <button
             key={f.id}
             onClick={() => setFiltro(f.id)}
-            className={`rounded-full border px-3 py-1 text-sm ${filtro === f.id ? "border-ink bg-ink text-bg" : "border-line text-ink-2 hover:text-ink"}`}
+            className="chip pressionavel"
+            data-ativo={filtro === f.id}
           >
-            {f.rotulo} {completo && <span className="opacity-70">{votos.filter((v) => passa(v, f.id)).length}</span>}
+            {f.rotulo} {completo && <span className="opacity-60">{votos.filter((v) => passa(v, f.id)).length}</span>}
           </button>
         ))}
       </div>

@@ -29,7 +29,7 @@ export function VotoAVoto({ grupos }: { grupos: { voto: VotoTipo; votantes: Vota
       {grupos.map(({ voto, votantes }) => {
         const aberto = abertos.has(voto);
         return (
-          <div key={voto} className="rounded-2xl bg-card-2 px-4">
+          <div key={voto} className="rounded-xl bg-card-2 px-4">
             <button onClick={() => alternar(voto)} aria-expanded={aberto} className="pressionavel flex w-full items-center justify-between py-3">
               <span className="inline-flex items-center gap-2 font-medium text-ink">
                 <span className="size-2.5 rounded-sm" style={{ background: COR_VOTO[voto] }} aria-hidden />

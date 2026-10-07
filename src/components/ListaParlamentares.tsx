@@ -49,7 +49,7 @@ const exibir = (p: ParlamentarResumo, o: Ordem) => {
   return pct(m.participacao, 0);
 };
 
-const select = "rounded-full border border-line bg-card px-3 py-2 text-sm text-ink outline-none focus:border-accent";
+const select = "rounded-lg border border-line bg-card px-3 py-2 text-sm text-ink outline-none focus:border-accent";
 
 export function ListaParlamentares({ todos }: { todos: ParlamentarResumo[] }) {
   const [casa, setCasa] = useState<"todas" | "camara" | "senado">("todas");
@@ -139,7 +139,7 @@ export function ListaParlamentares({ todos }: { todos: ParlamentarResumo[] }) {
         ))}
       </ul>
       {lista.length > limite && (
-        <button onClick={() => setLimite((l) => l + 120)} className="mt-3 w-full rounded-full border border-line py-2.5 text-sm text-ink-2 hover:text-ink">
+        <button onClick={() => setLimite((l) => l + 120)} className="mt-3 w-full rounded-lg border border-line py-2.5 text-sm text-ink-2 hover:text-ink">
           Mostrar mais ({lista.length - limite})
         </button>
       )}

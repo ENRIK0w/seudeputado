@@ -21,7 +21,7 @@ export function Gastos({ gastos }: { gastos: TGastos }) {
       </div>
       {gastos.porMes.length > 1 && <GraficoMensal meses={gastos.porMes} />}
       <div>
-        <h3 className="mb-3 text-sm text-muted">Com o que gastou</h3>
+        <h3 className="rotulo mb-3">Com o que gastou</h3>
         <ListaComMais
           className="space-y-2.5"
           rotulo="categorias"
@@ -37,7 +37,7 @@ export function Gastos({ gastos }: { gastos: TGastos }) {
         />
       </div>
       <div>
-        <h3 className="mb-2 text-sm text-muted">Maiores fornecedores</h3>
+        <h3 className="rotulo mb-2">Maiores fornecedores</h3>
         <ListaComMais
           className="divisor text-sm"
           rotulo="fornecedores"

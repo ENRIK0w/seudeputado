@@ -13,11 +13,11 @@ const ITENS = [
 export function Navegacao() {
   const path = usePathname();
   return (
-    <nav className="pilulas" aria-label="Seções">
+    <nav className="menu" aria-label="Seções">
       {ITENS.map((i) => {
         const ativa = i.href === "/" ? path === "/" : path.startsWith(i.href.replace(/\/$/, ""));
         return (
-          <Link key={i.href} href={i.href} className="pilula pressionavel nav-pilula" data-ativa={ativa} aria-current={ativa ? "page" : undefined}>
+          <Link key={i.href} href={i.href} className="menu-item" data-ativa={ativa} aria-current={ativa ? "page" : undefined}>
             {i.rotulo}
           </Link>
         );

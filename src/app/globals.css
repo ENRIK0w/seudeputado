@@ -2,36 +2,74 @@
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/newsreader";
 
-/* Tema escuro por padrão (como o seuimposto.com); claro opcional via data-theme. */
+/* ===================================================================== */
+/* Temas                                                                  */
+/* Escuro por padrão; claro segue o sistema (prefers-color-scheme) ou a    */
+/* escolha salva no botão do cabeçalho (html[data-theme]).                */
+/* ===================================================================== */
 :root {
-  --bg: #0b0b0d;
-  --card: #151517;
-  --card-2: #1c1c1f;
-  --line: #26262b;
-  --ink: #ededee;
-  --ink-2: #b9b9bf;
-  --muted: #85858d;
-  --accent: #7d9bff;
+  --bg: #0c0c0d;
+  --card: #141415;
+  --card-2: #1b1b1d;
+  --line: #262628;
+  --line-forte: #36363a;
+  --ink: #eeece8;
+  --ink-2: #b8b5ae;
+  --muted: #84817a;
+  --accent: #8aa2ff;
   --sim: #3fb983;
   --nao: #ef4e5a;
   --obstrucao: #e0a43a;
-  --ausente: #3a3a40;
+  --ausente: #3a3a3e;
   --esquerda: #e5374b;
   --centro: #c8b99a;
   --direita: #4565e8;
+  --mapa-0: #1c2135;
+  --mapa-1: #a3b8ff;
+  --sombra: 0 1px 0 rgb(255 255 255 / 0.03) inset;
   color-scheme: dark;
 }
 
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f6f4ef;
+    --card: #fffefb;
+    --card-2: #efece5;
+    --line: #e2ddd3;
+    --line-forte: #cfc9bd;
+    --ink: #1b1a17;
+    --ink-2: #4b4842;
+    --muted: #7a756c;
+    --accent: #2f4fd0;
+    --sim: #1b8a5a;
+    --nao: #cf3341;
+    --obstrucao: #b07a12;
+    --ausente: #d8d3c8;
+    --centro: #a8956c;
+    --mapa-0: #e8ecf6;
+    --mapa-1: #2140b5;
+    --sombra: 0 1px 2px rgb(40 32 16 / 0.04);
+    color-scheme: light;
+  }
+}
 :root[data-theme="light"] {
-  --bg: #f6f5f2;
-  --card: #ffffff;
-  --card-2: #f1f0ec;
-  --line: #e4e2dc;
-  --ink: #16161a;
-  --ink-2: #44444c;
-  --muted: #6e6e76;
-  --accent: #3355d6;
-  --ausente: #d6d5d0;
+  --bg: #f6f4ef;
+  --card: #fffefb;
+  --card-2: #efece5;
+  --line: #e2ddd3;
+  --line-forte: #cfc9bd;
+  --ink: #1b1a17;
+  --ink-2: #4b4842;
+  --muted: #7a756c;
+  --accent: #2f4fd0;
+  --sim: #1b8a5a;
+  --nao: #cf3341;
+  --obstrucao: #b07a12;
+  --ausente: #d8d3c8;
+  --centro: #a8956c;
+  --mapa-0: #e8ecf6;
+  --mapa-1: #2140b5;
+  --sombra: 0 1px 2px rgb(40 32 16 / 0.04);
   color-scheme: light;
 }
 
@@ -58,54 +96,94 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-feature-settings: "tnum" 1, "cv11" 1;
+  font-size: 15px;
+  line-height: 1.55;
+  /* Inter: "a" de um andar e algarismos tabulares — desenho menos genérico */
+  font-feature-settings: "cv11" 1, "ss01" 1, "tnum" 1;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 250ms ease, color 250ms ease;
 }
 
-.titulo {
+/* ---- Tipografia ---- */
+/* Newsreader com tamanho óptico automático: em tamanho grande vira corte de "display". */
+.titulo,
+.display,
+.numero {
   font-family: var(--font-serif);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-optical-sizing: auto;
+}
+.titulo {
+  font-weight: 450;
+  letter-spacing: -0.012em;
+  line-height: 1.15;
+}
+.display {
+  font-weight: 420;
+  font-size: clamp(2.1rem, 1.4rem + 3.4vw, 3.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+}
+.display em,
+.titulo em {
+  font-style: italic;
+  font-weight: 380;
+}
+.numero {
+  font-weight: 420;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.025em;
+}
+/* "Chapéu" das seções: caixa alta pequena e espaçada */
+.rotulo {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.texto-longo {
+  text-wrap: pretty;
+  max-width: 62ch;
 }
 
+/* ---- Superfícies ---- */
 .card {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 14px;
+  box-shadow: var(--sombra);
   min-width: 0;
 }
 
-.numero {
-  font-family: var(--font-serif);
-  font-variant-numeric: tabular-nums lining-nums;
-  letter-spacing: -0.02em;
-}
-
-/* Pílulas de navegação (abas) */
+/* Seletor segmentado (filtros e abas) */
 .pilulas {
+  position: relative;
   display: flex;
   gap: 2px;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--card);
-  border: 1px solid var(--line);
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--card-2);
   overflow-x: auto;
   scrollbar-width: none;
 }
 .pilula {
   flex: 1 0 auto;
-  padding: 8px 14px;
-  border-radius: 999px;
+  padding: 7px 14px;
+  border-radius: 7px;
   color: var(--ink-2);
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 500;
   text-align: center;
   white-space: nowrap;
   transition: background 0.15s, color 0.15s;
 }
 @media (max-width: 420px) {
   .pilula {
-    padding: 8px 11px;
-    font-size: 14px;
+    padding: 7px 10px;
+    font-size: 13.5px;
   }
 }
 .pilula:hover {
@@ -114,10 +192,118 @@ body {
 .pilula[data-ativa="true"] {
   color: var(--ink);
 }
-/* Abas sem indicador deslizante (botões simples) mantêm o fundo */
 button.pilula[data-ativa="true"]:not(.com-indicador) {
-  background: var(--card-2);
-  box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--card);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+/* Menu principal: abas de texto com sublinhado */
+.menu {
+  display: flex;
+  gap: 1.6rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.menu-item {
+  position: relative;
+  padding: 0.85rem 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color 200ms ease;
+}
+.menu-item:hover {
+  color: var(--ink);
+}
+.menu-item[data-ativa="true"] {
+  color: var(--ink);
+}
+.menu-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 350ms var(--mola, ease);
+}
+.menu-item[data-ativa="true"]::after {
+  transform: scaleX(1);
+}
+
+/* Chips de filtro (texto + contagem) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+}
+.chip:hover {
+  color: var(--ink);
+  border-color: var(--line-forte);
+}
+.chip[data-ativo="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+/* ---- Cabeçalho fixo: fundo translúcido e linha fina ---- */
+.cabecalho {
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.cabecalho .menu-item {
+  padding: 1.15rem 0;
+}
+@media (max-width: 767px) {
+  .cabecalho .menu-item {
+    padding: 0.55rem 0 0.75rem;
+  }
+}
+
+/* Ícone do botão de tema: lua no escuro, sol no claro */
+.icone-sol {
+  display: none;
+}
+:root[data-theme="light"] .icone-sol {
+  display: block;
+}
+:root[data-theme="light"] .icone-lua {
+  display: none;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .icone-sol {
+    display: block;
+  }
+  :root:not([data-theme="dark"]) .icone-lua {
+    display: none;
+  }
+}
+
+.aviso-exemplo {
+  background: color-mix(in srgb, var(--obstrucao) 14%, var(--bg));
+  color: color-mix(in srgb, var(--obstrucao) 70%, var(--ink));
+}
+
+/* Seção numerada: número fino + título em serifa + linha */
+.secao-num {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--muted);
+  font-variant-numeric: lining-nums;
 }
 
 .divisor > * + * {
@@ -148,18 +334,6 @@ button.pilula[data-ativa="true"]:not(.com-indicador) {
     opacity: 0;
     transform: scale(0.985) translateY(8px);
   }
-}
-
-/* Pílula ativa do menu troca suavemente */
-.nav-pilula {
-  transition:
-    background-color 300ms var(--mola),
-    box-shadow 300ms var(--mola),
-    color 300ms ease;
-}
-.nav-pilula[data-ativa="true"] {
-  background: var(--card-2);
-  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 /* ---- Entrada dos cards em cascata ---- */

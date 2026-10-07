@@ -38,5 +38,3 @@ export function Revelador() {
   return null;
 }
 
-/** Roda antes da primeira pintura: liga as animações (se o usuário não pediu menos movimento). */
-export const SCRIPT_ANIMACAO = `try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){var h=document.documentElement;h.dataset.anim='';h.dataset.primeiraCarga=''}}catch(e){}`;

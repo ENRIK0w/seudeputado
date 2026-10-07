@@ -34,7 +34,7 @@ export function BuscaRapida({ autoFocus = false }: { autoFocus?: boolean }) {
 
   return (
     <div className="relative">
-      <label className="flex items-center gap-3 rounded-2xl border border-line bg-card-2 px-4 py-3 focus-within:border-accent">
+      <label className="flex items-center gap-3 rounded-xl border border-line bg-card px-4 py-3 shadow-[var(--sombra)] focus-within:border-accent">
         <svg viewBox="0 0 24 24" className="size-5 shrink-0 text-muted" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" />
@@ -49,7 +49,7 @@ export function BuscaRapida({ autoFocus = false }: { autoFocus?: boolean }) {
         />
       </label>
       {resultados.length > 0 && (
-        <ul className="popover card divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden !rounded-2xl shadow-2xl">
+        <ul className="popover card divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden !rounded-xl shadow-2xl">
           {resultados.map((r) => (
             <li key={r.slug}>
               <Link href={`/p/${r.slug}/`} className="pressionavel flex items-center gap-3 px-4 py-3 hover:bg-card-2">
