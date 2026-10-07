@@ -95,7 +95,12 @@ async function main() {
   if (tse) {
     ds.eleicaoMapas = tse.mapas;
     maisVotados = tse.maisVotadosPorMunicipio;
-    for (const p of parlamentares) p.eleicao = tse.resumos[p.slug] ?? null;
+    // O TSE grava nomes em maiúsculas ("PASSO FUNDO"); usamos a grafia do IBGE.
+    const nomeIbge = new Map((municipios ?? []).map((m) => [m.ibge, m.nome]));
+    for (const p of parlamentares) {
+      const r = tse.resumos[p.slug];
+      p.eleicao = r ? { ...r, topMunicipios: r.topMunicipios.map((t) => ({ ...t, nome: nomeIbge.get(t.ibge) ?? t.nome })) } : null;
+    }
     fontes.push({ nome: "TSE — Dados Abertos", url: "https://dadosabertos.tse.jus.br", atualizadoEm: tse.geradoEm });
   }
   // Municípios (emendas + mais votados) e malhas saem sempre, mesmo sem o TSE.
