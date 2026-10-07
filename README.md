@@ -62,3 +62,22 @@ Configuração (uma vez):
 
 Mudanças de código também só entram no ar pelo workflow de publicação (rode-o
 manualmente depois de um merge).
+
+## Troca de legislatura (fevereiro de 2027)
+
+Os eleitos em outubro de 2026 tomam posse em **1º de fevereiro de 2027**. Até lá o
+site continua com a legislatura atual (57ª) e com os mapas da eleição de 2022 —
+não rode o TSE de 2026 antes disso. Na posse:
+
+1. Atualize o código em três lugares:
+   - `pipeline/sources/camara.ts`: `LEGISLATURA = 58` e `INICIO_LEGISLATURA = "2027-02-01"`
+   - `pipeline/sources/senado.ts`: `INICIO_LEGISLATURA = "2027-02-01"`
+   - `pipeline/sources/tse.ts`: anos `[2026, 2022]` em vez de `[2022, 2018]`
+     (no Senado só 2/3 das cadeiras foram renovadas; quem foi eleito em 2022 segue
+     até 2031 e continua com o mapa de 2022)
+2. Rode **Atualizar dados do TSE** (30–40 min). Ele grava o resultado em `dados-base/tse/`.
+3. Rode **Atualizar dados e publicar**.
+4. No relatório da publicação, confira a linha "cruzados com o TSE": deve ficar perto
+   de 513/513 na Câmara e 81/81 no Senado.
+
+Quem deixar o mandato sai do site (não há arquivo da legislatura anterior).
