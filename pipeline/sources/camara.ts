@@ -165,7 +165,8 @@ export async function coletarCamara(): Promise<ColetaCasa> {
     proposicao_numero?: number | string;
     proposicao_ano?: number | string;
     proposicao_ementa?: string;
-    proposicao_?: { siglaTipo?: string; numero?: number | string; ano?: number | string; ementa?: string };
+    proposicao_id?: number | string;
+    proposicao_?: { id?: number | string; siglaTipo?: string; numero?: number | string; ano?: number | string; ementa?: string };
   };
 
   const votacoesArq: VotacaoArq[] = [];
@@ -187,7 +188,9 @@ export async function coletarCamara(): Promise<ColetaCasa> {
   const votosPorVotacao = Map.groupBy(votosArq, (v) => v.idVotacao);
   const orientPorVotacao = Map.groupBy(orientArq, (o) => o.idVotacao);
   // Primeiro objeto com ementa de cada votação (preferindo PL, PEC etc. a requerimentos)
-  const objetoPorVotacao = new Map<string, { sigla: string; ementa: string }>();
+  // "PL 2338/2023" → id na Câmara: usado para transformar citações em links
+  const idProposicaoPorSigla = new Map<string, number>();
+  const objetoPorVotacao = new Map<string, { sigla: string; ementa: string; id: number | null }>();
   for (const o of objetosArq) {
     const tipo = o.proposicao_siglaTipo ?? o.proposicao_?.siglaTipo;
     const ementa = o.proposicao_ementa ?? o.proposicao_?.ementa;
@@ -196,7 +199,9 @@ export async function coletarCamara(): Promise<ColetaCasa> {
     if (atual && (TIPOS_PROPOSICAO.has(atual.sigla.split(" ")[0]) || !TIPOS_PROPOSICAO.has(tipo))) continue;
     const numero = o.proposicao_numero ?? o.proposicao_?.numero;
     const ano = o.proposicao_ano ?? o.proposicao_?.ano;
-    objetoPorVotacao.set(o.idVotacao, { sigla: `${tipo} ${numero}/${ano}`, ementa });
+    const idProp = Number(o.proposicao_id ?? o.proposicao_?.id) || null;
+    objetoPorVotacao.set(o.idVotacao, { sigla: `${tipo} ${numero}/${ano}`, ementa, id: idProp });
+    if (idProp) idProposicaoPorSigla.set(`${tipo} ${Number(numero)}/${ano}`, idProp);
   }
 
   const plenario = votacoesArq
@@ -230,6 +235,7 @@ export async function coletarCamara(): Promise<ColetaCasa> {
       descricao: limparDescricao(v.descricao),
       proposicao: objetoPorVotacao.get(v.id)?.sigla ?? v.proposicaoObjeto ?? null,
       ementa: objetoPorVotacao.get(v.id)?.ementa ?? null,
+      proposicaoUrl: objetoPorVotacao.get(v.id)?.id ? `https://www.camara.leg.br/propostas-legislativas/${objetoPorVotacao.get(v.id)!.id}` : null,
       aprovada: v.aprovacao == null ? null : v.aprovacao === 1,
       placar: { sim: 0, nao: 0, abstencao: 0, obstrucao: 0, ausente: 0 },
       orientacoes,
@@ -312,7 +318,10 @@ export async function coletarCamara(): Promise<ColetaCasa> {
   const props = new Map<number, PropArq>();
   const autores: AutorArq[] = [];
   for (const ano of anos) {
-    for (const p of await arquivoAnual<PropArq>("proposicoes", ano)) if (TIPOS_PROPOSICAO.has(p.siglaTipo)) props.set(p.id, p);
+    for (const p of await arquivoAnual<PropArq>("proposicoes", ano)) {
+      idProposicaoPorSigla.set(`${p.siglaTipo} ${Number(p.numero)}/${p.ano}`, p.id);
+      if (TIPOS_PROPOSICAO.has(p.siglaTipo)) props.set(p.id, p);
+    }
     acrescentar(autores, await arquivoAnual<AutorArq>("proposicoesAutores", ano));
   }
   // Votações sem objeto no arquivo: tenta achar a ementa pela sigla ("PL 1234/2024")
@@ -417,5 +426,5 @@ export async function coletarCamara(): Promise<ColetaCasa> {
   });
 
   const cpfPorSlug = Object.fromEntries([...slugPorCpf].map(([cpf, slug]) => [slug, cpf]));
-  return { parlamentares, votacoes, votosPorSlug, cpfPorSlug };
+  return { parlamentares, votacoes, votosPorSlug, cpfPorSlug, idProposicaoPorSigla };
 }

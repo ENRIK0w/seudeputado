@@ -1,3 +1,5 @@
+import type { Referencia } from "./referencias";
+
 // Modelo de dados gerado pelo pipeline (pipeline/) e lido pelo site.
 // Tudo é serializado em JSON — datas são strings ISO (AAAA-MM-DD ou com hora).
 
@@ -155,6 +157,10 @@ export interface Votacao {
   descricao: string;
   proposicao: string | null;
   ementa: string | null;
+  /** Página oficial da proposição votada, quando conhecida. */
+  proposicaoUrl?: string | null;
+  /** Projetos e leis citados na descrição/ementa, com link para a fonte. */
+  referencias?: Referencia[];
   aprovada: boolean | null;
   placar: { sim: number; nao: number; abstencao: number; obstrucao: number; ausente: number };
   orientacoes: OrientacaoBancada[];
@@ -164,7 +170,7 @@ export interface Votacao {
   url: string;
 }
 
-export type VotacaoResumo = Omit<Votacao, "orientacoes" | "porPartido" | "votos">;
+export type VotacaoResumo = Omit<Votacao, "orientacoes" | "porPartido" | "votos" | "referencias">;
 
 export interface ComposicaoPartido {
   partido: string;

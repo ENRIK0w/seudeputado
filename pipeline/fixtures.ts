@@ -14,6 +14,7 @@ import type {
 } from "../src/lib/types";
 import { porte } from "../src/lib/buscaCidade";
 import { espectroDe } from "../src/lib/partidos";
+import { encontrarCitacoes, urlLexml } from "../src/lib/referencias";
 import { calcularMetricas } from "./metricas";
 import { gravarDataset } from "./output";
 import { agregarGastos, type Despesa } from "./sources/gastos";
@@ -304,7 +305,7 @@ function main() {
         data,
         descricao: `Votação ${pick(["do texto-base", "em primeiro turno", "da emenda aglutinativa", "do requerimento de urgência", "em segundo turno"])} do projeto sobre ${tema} (exemplo)`,
         proposicao: `${tipo} ${int(100, 4999)}/${ano}`,
-        ementa: `Altera regras sobre ${tema}. (texto de exemplo)`,
+        ementa: `Altera a Lei nº ${pick(["8.213", "9.394", "14.133", "8.078"])}, de ${pick(["1991", "1996", "2021", "1990"])}, e a Lei Complementar nº 101, de 2000, para tratar de ${tema}. (texto de exemplo)`,
         aprovada: placar.sim > placar.nao,
         placar,
         orientacoes: casa === "camara" ? [...orientPartido].map(([bancada, orientacao]) => ({ bancada, orientacao })).concat([{ bancada: "Governo", orientacao: gov }]) : [],
@@ -312,6 +313,14 @@ function main() {
         votos,
         url: "#",
       });
+      // citações viram links (nos dados reais isso vem de resolverReferencias)
+      const ultima = votacoes.at(-1)!;
+      ultima.referencias = encontrarCitacoes(`${ultima.descricao}\n${ultima.ementa}\n${ultima.proposicao}`).map((c) => ({
+        trecho: c.trecho,
+        tipo: c.tipo,
+        url: urlLexml(c),
+      }));
+      ultima.proposicaoUrl = urlLexml({ sigla: tipo, numero: 1, ano: Number(ano) });
     }
   }
 

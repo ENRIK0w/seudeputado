@@ -5,6 +5,8 @@ const brlCompacto = new Intl.NumberFormat("pt-BR", { style: "currency", currency
 const inteiro = new Intl.NumberFormat("pt-BR");
 
 export const reais = (n: number) => brl.format(n);
+/** Com centavos: "R$ 23.456,78" */
+export const reaisExato = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 export const reaisCompacto = (n: number) => brlCompacto.format(n);
 export const numero = (n: number) => inteiro.format(n);
 

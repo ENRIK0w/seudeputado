@@ -304,8 +304,11 @@ html[data-anim] [data-animar]:not([data-visivel]) .anim-coluna {
 .anim-coluna {
   transform-box: fill-box;
   transform-origin: bottom;
-  transition: transform 900ms var(--expo);
-  transition-delay: calc(var(--i, 0) * 18ms);
+  /* transform: entrada escalonada; opacity: destaque da coluna em foco (imediato) */
+  transition:
+    transform 900ms var(--expo),
+    opacity 150ms ease;
+  transition-delay: calc(var(--i, 0) * 18ms), 0s;
 }
 
 /* Grade de votos: filtro esmaece os quadrados fora do recorte */
@@ -331,4 +334,26 @@ html[data-anim] .contador[data-animar]:not([data-visivel]) {
   transition:
     transform 1000ms var(--expo),
     width 600ms var(--mola);
+}
+
+/* Citações clicáveis (projetos e leis) — levemente diferentes do texto comum */
+.ref-link {
+  color: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  transition: color 150ms ease, text-decoration-color 150ms ease;
+}
+.ref-link::after {
+  content: "↗";
+  display: inline-block;
+  margin-left: 0.12em;
+  font-size: 0.7em;
+  vertical-align: 0.35em;
+  color: var(--accent);
+}
+.ref-link:hover {
+  color: var(--accent);
+  text-decoration-style: solid;
 }

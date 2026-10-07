@@ -10,6 +10,7 @@ import { calcularMetricas } from "./metricas";
 import { gravarDataset, type Dataset } from "./output";
 import { coletarCamara } from "./sources/camara";
 import { indiceMunicipios, listarMunicipios, malhaDaUf } from "./sources/ibge";
+import { resolverReferencias } from "./sources/referencias";
 import { coletarSenado } from "./sources/senado";
 import { coletarEmendas } from "./sources/transparencia";
 import { coletarTse, type ResultadoTse } from "./sources/tse";
@@ -68,6 +69,10 @@ async function main() {
       fontes.push({ nome: "Portal da Transparência — Emendas", url: "https://portaldatransparencia.gov.br/emendas", atualizadoEm: hoje });
     }
   }
+
+  await opcional("Referências nas votações", () =>
+    resolverReferencias([...camara.votacoes, ...senado.votacoes], camara.idProposicaoPorSigla ?? new Map()),
+  );
 
   const ds: Dataset = {
     parlamentares,

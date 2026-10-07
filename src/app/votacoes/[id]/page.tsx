@@ -7,6 +7,7 @@ import { COR_VOTO, data, limparDescricao, numero, ROTULO_VOTO } from "@/lib/form
 import { corPartido } from "@/lib/partidos";
 import type { VotoTipo } from "@/lib/types";
 import { Contador } from "@/components/Contador";
+import { TextoReferenciado } from "@/components/TextoReferenciado";
 import { Pagina } from "@/components/Pagina";
 
 // Gerada na primeira visita e guardada em cache por um dia (ou até a próxima atualização de dados).
@@ -41,12 +42,26 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
           <span>{data(v.data, { day: "numeric", month: "long", year: "numeric" })}</span>
           {v.aprovada != null && <span className={v.aprovada ? "text-sim" : "text-nao"}>● {v.aprovada ? "Aprovada" : "Rejeitada"}</span>}
         </div>
-        {v.proposicao && <p className="mt-3 text-sm font-medium text-ink-2">{v.proposicao}</p>}
-        <h1 className="titulo mt-1 text-[28px] leading-tight text-ink">{limparDescricao(v.descricao)}</h1>
+        {v.proposicao && (
+          <p className="mt-3 text-sm font-medium text-ink-2">
+            {v.proposicaoUrl ? (
+              <a href={v.proposicaoUrl} target="_blank" rel="noreferrer" className="ref-link" title={`Abrir ${v.proposicao} na fonte oficial`}>
+                {v.proposicao}
+              </a>
+            ) : (
+              v.proposicao
+            )}
+          </p>
+        )}
+        <h1 className="titulo mt-1 text-[28px] leading-tight text-ink">
+          <TextoReferenciado texto={limparDescricao(v.descricao)} referencias={v.referencias} />
+        </h1>
         {v.ementa && (
           <div className="mt-4 rounded-2xl bg-card-2 px-4 py-3">
             <p className="text-xs font-medium tracking-wide text-muted uppercase">Do que se trata{v.proposicao ? ` · ${v.proposicao}` : ""}</p>
-            <p className="mt-1 text-[15px] leading-relaxed text-ink">{v.ementa}</p>
+            <p className="mt-1 text-[15px] leading-relaxed text-ink">
+              <TextoReferenciado texto={v.ementa} referencias={v.referencias} />
+            </p>
           </div>
         )}
 

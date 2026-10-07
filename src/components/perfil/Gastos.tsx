@@ -2,35 +2,11 @@ import { reais, reaisCompacto } from "@/lib/formato";
 import type { Gastos as TGastos } from "@/lib/types";
 import { Contador } from "../Contador";
 import { ListaComMais } from "../ListaComMais";
+import { GraficoMensal } from "./GraficoMensal";
 import { Barra, Metrica, Vazio } from "../ui";
 
 function titulo(s: string) {
   return s.replace(/\.$/, "").replace(/\s+,/g, ",");
-}
-
-/** Gasto mensal: colunas finas, uma por mês, com tooltip nativo. */
-function Mensal({ meses }: { meses: TGastos["porMes"] }) {
-  const max = Math.max(...meses.map((m) => m.total), 1);
-  const w = 100 / meses.length;
-  return (
-    <figure>
-      <svg viewBox="0 0 100 32" preserveAspectRatio="none" className="h-24 w-full" data-animar role="img" aria-label="Gasto mensal da cota">
-        {meses.map((m, i) => {
-          const h = (m.total / max) * 30;
-          return (
-            <rect key={m.mes} className="anim-coluna" style={{ ["--i" as string]: i }} x={i * w + w * 0.15} y={32 - h} width={w * 0.7} height={h} rx={0.6} fill="var(--accent)" opacity={0.85}>
-              <title>{`${m.mes.split("-").reverse().join("/")}: ${reais(m.total)}`}</title>
-            </rect>
-          );
-        })}
-      </svg>
-      <figcaption className="mt-1 flex justify-between text-xs text-muted">
-        <span>{meses[0]?.mes.split("-").reverse().join("/")}</span>
-        <span>maior mês: {reaisCompacto(max)}</span>
-        <span>{meses.at(-1)?.mes.split("-").reverse().join("/")}</span>
-      </figcaption>
-    </figure>
-  );
 }
 
 export function Gastos({ gastos }: { gastos: TGastos }) {
@@ -43,7 +19,7 @@ export function Gastos({ gastos }: { gastos: TGastos }) {
         <Metrica rotulo="Total na legislatura" valor={<Contador valor={gastos.total} formato="reaisCompacto" />} detalhe={reais(gastos.total)} />
         <Metrica rotulo="Média por mês" valor={<Contador valor={media} formato="reaisCompacto" />} detalhe={`${gastos.porMes.length} meses com despesas`} />
       </div>
-      {gastos.porMes.length > 1 && <Mensal meses={gastos.porMes} />}
+      {gastos.porMes.length > 1 && <GraficoMensal meses={gastos.porMes} />}
       <div>
         <h3 className="mb-3 text-sm text-muted">Com o que gastou</h3>
         <ListaComMais

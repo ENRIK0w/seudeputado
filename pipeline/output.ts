@@ -42,7 +42,7 @@ function resumo(p: Parlamentar): ParlamentarResumo {
 
 function resumoVotacao(v: Votacao): VotacaoResumo {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { orientacoes, porPartido, votos, ...r } = v;
+  const { orientacoes, porPartido, votos, referencias, ...r } = v;
   return r;
 }
 

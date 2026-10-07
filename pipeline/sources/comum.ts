@@ -8,6 +8,8 @@ export interface ColetaCasa {
   votosPorSlug: Record<string, VotoParlamentar[]>;
   /** CPF por slug, quando a fonte informa (usado para cruzar com o TSE). */
   cpfPorSlug: Record<string, string>;
+  /** "PL 2338/2023" → id da proposição na Câmara (só a coleta da Câmara preenche). */
+  idProposicaoPorSigla?: Map<string, number>;
 }
 
 export function metricasVazias(): Metricas {
