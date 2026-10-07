@@ -8,6 +8,7 @@ import path from "node:path";
 import type { Meta, MunicipioDados, Parlamentar } from "../src/lib/types";
 import { calcularMetricas } from "./metricas";
 import { gravarDataset, type Dataset } from "./output";
+import { coletarAgenda } from "./sources/agenda";
 import { coletarCamara } from "./sources/camara";
 import { indiceMunicipios, listarMunicipios, malhaDaUf } from "./sources/ibge";
 import { resolverReferencias } from "./sources/referencias";
@@ -74,6 +75,8 @@ async function main() {
     resolverReferencias([...camara.votacoes, ...senado.votacoes], camara.idProposicaoPorSigla ?? new Map()),
   );
 
+  const agenda = await opcional("Agenda", coletarAgenda);
+
   const ds: Dataset = {
     parlamentares,
     votacoes: [...camara.votacoes, ...senado.votacoes],
@@ -82,6 +85,7 @@ async function main() {
     malhas: {},
     municipios: {},
     meta: { geradoEm: hoje, exemplo: false, fontes },
+    agenda: agenda ?? [],
   };
 
   const municipios = await opcional("IBGE municípios", listarMunicipios);

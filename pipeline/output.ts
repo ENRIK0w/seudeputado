@@ -3,6 +3,7 @@ import path from "node:path";
 import type {
   Composicao,
   EleicaoMapa,
+  EventoAgenda,
   ItemBusca,
   Meta,
   MunicipioDados,
@@ -24,6 +25,7 @@ export interface Dataset {
   malhas: Record<string, unknown>;
   municipios: Record<string, MunicipioDados>;
   meta: Meta;
+  agenda?: EventoAgenda[];
 }
 
 const RAIZ = path.resolve(".");
@@ -86,6 +88,13 @@ export async function gravarDataset(ds: Dataset) {
     grupos.set(grupoProjeto(id), g);
   }
   for (const [g, lista] of grupos) await gravar(path.join(DATA, "projetos", `${g}.json`), lista);
+
+  // Agenda: o link interno só vale para projetos que têm página no site
+  const agenda = (ds.agenda ?? []).map((e) => ({
+    ...e,
+    itens: e.itens.map(({ projeto, ...it }) => (projeto && projetos.has(projeto) ? { ...it, projeto } : it)),
+  }));
+  await gravar(path.join(PUB, "agenda.json"), { geradoEm: ds.meta.geradoEm, eventos: agenda });
 
   const ordenados = [...ds.parlamentares].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
   await gravar(path.join(DATA, "parlamentares.json"), ordenados.map(resumo));

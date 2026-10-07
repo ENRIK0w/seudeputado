@@ -105,6 +105,33 @@ export interface Projeto {
   votacoes: string[];
 }
 
+/** Item da pauta de uma sessão (projeto que pode ir a voto). */
+export interface ItemPauta {
+  sigla: string;
+  ementa: string;
+  /** Id do projeto na página /projetos/[id], quando é de um parlamentar atual. */
+  projeto?: string;
+  /** Página oficial do projeto. */
+  url: string | null;
+}
+
+/** Sessão deliberativa marcada (public/data/agenda.json). Datas e horas no horário de Brasília. */
+export interface EventoAgenda {
+  id: string;
+  casa: Casa | "congresso";
+  data: string; // AAAA-MM-DD
+  hora: string | null; // HH:MM
+  tipo: string;
+  situacao: string | null;
+  url: string;
+  itens: ItemPauta[];
+}
+
+export interface Agenda {
+  geradoEm: string;
+  eventos: EventoAgenda[];
+}
+
 export interface EmendaResumo {
   ano: number;
   numero: string;

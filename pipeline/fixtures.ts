@@ -2,6 +2,7 @@
 // desenvolver o site sem acesso às APIs. Nomes, votos e valores são inventados.
 // Uso: npm run dados:exemplo
 import type {
+  EventoAgenda,
   Casa,
   EleicaoMapa,
   EmendaResumo,
@@ -358,6 +359,33 @@ function main() {
     }
   });
 
+  // Agenda de exemplo: sessões nos próximos dias úteis (terça a quinta, como no Congresso)
+  const todosProjetos = parlamentares.flatMap((p) => p.proposicoes.filter((pr) => pr.principal));
+  const agenda: EventoAgenda[] = [];
+  for (let d = 0; d < 14; d++) {
+    const dia = new Date(Date.now() - 3 * 3600e3 + d * 86400e3);
+    const sem = dia.getUTCDay();
+    const data = dia.toISOString().slice(0, 10);
+    const sessao = (casa: EventoAgenda["casa"], hora: string, tipo: string, n: number) =>
+      agenda.push({
+        id: `${casa}-ex${d}${hora.slice(0, 2)}`,
+        casa,
+        data,
+        hora,
+        tipo,
+        situacao: "Convocada",
+        url: "#",
+        itens: Array.from({ length: n }, () => {
+          const pr = pick(todosProjetos);
+          return { sigla: pr.sigla, ementa: pr.ementa, projeto: pr.id, url: "#" };
+        }),
+      });
+    if (sem >= 2 && sem <= 4) sessao("camara", "13:55", "Sessão Deliberativa Extraordinária", int(2, 9));
+    if (sem === 2 || sem === 3) sessao("senado", "14:00", "Sessão Deliberativa Ordinária", int(1, 5));
+    if (sem === 3) sessao("camara", "19:00", "Sessão Deliberativa Extraordinária", int(1, 3));
+    if (d === 8) sessao("congresso", "10:00", "Sessão Conjunta do Congresso Nacional", 2);
+  }
+
   return gravarDataset({
     parlamentares,
     votacoes,
@@ -366,6 +394,7 @@ function main() {
     malhas,
     municipios,
     meta: { geradoEm: new Date().toISOString(), exemplo: true, fontes: [] },
+    agenda,
   });
 }
 
