@@ -14,6 +14,10 @@ para onde mandou emendas, por quais partidos passou e onde foi votado.
 | Visual | Inspirado no seuimposto.com: tema escuro, títulos em serifa, cards arredondados, abas em pílula, números grandes, mapas coropléticos e hemiciclo de bolinhas. |
 | Atualização | 1× por dia (madrugada). |
 | Nome/domínio | "Seu Deputado" provisório; subdomínio grátis até decidir. |
+| Natureza | Sem fins lucrativos — cabe no plano grátis (Hobby) da Vercel. |
+| Hospedagem | Vercel (Hobby). Coleta no GitHub Actions. Banco (Neon) só se os dados reais passarem dos limites de deploy. |
+| Repositório | Público depois da fase de testes (minutos de Actions ilimitados e transparência do código). |
+| Coleta do TSE | Só quando houver eleição (workflow manual); o resultado fica versionado e a coleta diária reaproveita. |
 
 ## Arquitetura (custo zero)
 
