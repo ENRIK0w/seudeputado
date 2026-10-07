@@ -325,3 +325,10 @@ html[data-anim] .contador[data-animar]:not([data-visivel]) {
 .contador {
   transition: opacity 250ms ease-out;
 }
+
+/* Barras que mudam de tamanho com filtros (ex.: emendas por área) */
+.barra-largura {
+  transition:
+    transform 1000ms var(--expo),
+    width 600ms var(--mola);
+}
