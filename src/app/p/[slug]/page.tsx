@@ -76,7 +76,7 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
 
   return (
     <Pagina className="grid gap-x-10 gap-y-6 lg:grid-cols-[300px_minmax(0,1fr)]">
-      <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+      <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start lg:rounded-[28px] lg:p-6 lg:vidro">
         <div className="flex items-center gap-4 lg:block">
           <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={84} />
           <div className="min-w-0 lg:mt-5">

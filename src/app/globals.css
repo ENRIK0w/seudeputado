@@ -213,45 +213,6 @@ button.pilula[data-ativa="true"]:not(.com-indicador) {
   box-shadow: 0 0 0 1px var(--line);
 }
 
-/* Menu principal: abas de texto com sublinhado */
-.menu {
-  display: flex;
-  gap: 1.6rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.menu-item {
-  position: relative;
-  padding: 0.85rem 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--muted);
-  white-space: nowrap;
-  transition: color 200ms ease;
-}
-.menu-item:hover {
-  color: var(--ink);
-}
-.menu-item[data-ativa="true"] {
-  color: var(--ink);
-}
-.menu-item::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--ink);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 350ms var(--mola, ease);
-}
-.menu-item[data-ativa="true"]::after {
-  transform: scaleX(1);
-}
-
 /* Chips de filtro (texto + contagem) */
 .chip {
   display: inline-flex;
@@ -274,19 +235,49 @@ button.pilula[data-ativa="true"]:not(.com-indicador) {
   color: var(--bg);
 }
 
-/* ---- Cabeçalho fixo: fundo translúcido e linha fina ---- */
-.cabecalho {
-  background: color-mix(in srgb, var(--bg) 62%, transparent);
-  backdrop-filter: blur(22px) saturate(180%);
-  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
-}
-.cabecalho .menu-item {
-  padding: 1.15rem 0;
-}
+/* ---- Cabeçalho ---- */
+/* Celular: barra de vidro colada no topo */
 @media (max-width: 767px) {
-  .cabecalho .menu-item {
-    padding: 0.55rem 0 0.75rem;
+  .cabecalho {
+    background: color-mix(in srgb, var(--bg) 62%, transparent);
+    backdrop-filter: blur(22px) saturate(180%);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
   }
+}
+/* Menu do desktop: itens de texto e uma lente de vidro que desliza até o ativo */
+.menu-vidro {
+  position: relative;
+  display: flex;
+  gap: 2px;
+}
+.menu-vidro-item {
+  position: relative;
+  z-index: 1;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color 250ms ease;
+}
+.menu-vidro-item:hover,
+.menu-vidro-item[data-ativa="true"] {
+  color: var(--ink);
+}
+.lente-nav {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--vidro-brilho) 70%, transparent),
+    inset 0 0 0 0.5px color-mix(in srgb, var(--ink) 10%, transparent);
+  transition:
+    transform 480ms var(--mola),
+    width 480ms var(--mola);
 }
 
 /* Ícone do botão de tema: lua no escuro, sol no claro */
@@ -325,27 +316,28 @@ button.pilula[data-ativa="true"]:not(.com-indicador) {
 /* Vidro líquido: só na camada que flutua sobre o conteúdo (barras, menus, */
 /* folhas). Fundo translúcido com desfoque + reflexo de luz na borda.      */
 /* ===================================================================== */
-/* Quem usa .vidro precisa estar posicionado (fixed/absolute/relative) por causa do ::before */
-.vidro {
+/* Utilitário do Tailwind para valer com variantes (md:vidro, lg:vidro).
+   Quem usa precisa estar posicionado (fixed/absolute/relative) por causa do ::before. */
+@utility vidro {
   background: var(--vidro);
   backdrop-filter: blur(24px) saturate(185%);
   border: 1px solid var(--vidro-borda);
   box-shadow: var(--vidro-sombra);
-}
-/* Reflexo na borda: mais forte no alto à esquerda e embaixo à direita */
-.vidro::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(150deg, var(--vidro-brilho), transparent 32%, transparent 68%, color-mix(in srgb, var(--vidro-brilho) 60%, transparent));
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+  /* Reflexo na borda: mais forte no alto à esquerda e embaixo à direita */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(150deg, var(--vidro-brilho), transparent 32%, transparent 68%, color-mix(in srgb, var(--vidro-brilho) 60%, transparent));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
 }
 
 /* Barra de abas flutuante (celular) */

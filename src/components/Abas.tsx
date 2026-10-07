@@ -23,7 +23,7 @@ export function Abas({ abas, pequenas = false }: { abas: { rotulo: string; conte
       <div className={`${pequenas ? "mb-4 inline-flex gap-1" : "pilulas mb-4"} relative`} role="tablist">
         {ind && (
           <span
-            className={`indicador pointer-events-none absolute left-0 ${pequenas ? "top-0 bottom-0 rounded-md bg-card-2" : "top-[3px] bottom-[3px] rounded-[7px] bg-card shadow-[0_0_0_1px_var(--line),0_1px_2px_rgb(0_0_0/0.06)]"}`}
+            className={`indicador pointer-events-none absolute left-0 ${pequenas ? "top-0 bottom-0 rounded-md bg-card-2" : "top-[3px] bottom-[3px] rounded-[7px] bg-card shadow-[0_0_0_0.5px_var(--line),0_2px_6px_rgb(0_0_0/0.08),inset_0_1px_0_var(--vidro-brilho)]"}`}
             style={{ transform: `translateX(${ind.x}px)`, width: ind.w }}
             aria-hidden
           />

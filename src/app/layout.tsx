@@ -51,16 +51,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             Dados de <strong>exemplo</strong>: nomes, votos e valores são fictícios. Rode <code>npm run dados</code> para usar os dados oficiais.
           </div>
         )}
-        <header className="cabecalho sticky top-0 z-30">
-          <div className="mx-auto flex w-full max-w-6xl items-center gap-6 px-4 md:px-6">
-            <Link href="/" className="flex shrink-0 items-center gap-2.5 py-3 leading-none" aria-label="Seu Deputado — início">
+        {/* Celular: barra de vidro colada no topo. Tablet/desktop: cápsula de vidro flutuante. */}
+        <header className="cabecalho sticky top-0 z-30 md:top-3 md:mt-3 md:px-6">
+          <div className="mx-auto flex w-full max-w-6xl items-center gap-6 px-4 md:relative md:max-w-[69rem] md:rounded-full md:py-1.5 md:pr-2 md:pl-5 md:vidro">
+            <Link href="/" className="flex shrink-0 items-center gap-2.5 py-3 leading-none md:py-2" aria-label="Seu Deputado — início">
               <Marca className="h-[17px] w-6 text-ink" />
               <span className="titulo text-[21px] text-ink">Seu Deputado</span>
             </Link>
             <div className="hidden min-w-0 flex-1 md:block">
               <Navegacao />
             </div>
-            <div className="ml-auto flex items-center gap-1 md:ml-0">
+            <div className="ml-auto flex items-center gap-0.5 md:ml-0">
               <Link
                 href="/parlamentares/"
                 aria-label="Buscar parlamentar"
