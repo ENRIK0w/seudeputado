@@ -89,7 +89,7 @@ export function MinhaCidade() {
             className="w-full rounded-full border border-line bg-card-2 px-4 py-3 text-[16px] text-ink outline-none placeholder:text-muted focus:border-accent"
           />
           {sugestoes.length > 0 && (
-            <ul id="sugestoes-cidade" role="listbox" className="card divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden !rounded-2xl shadow-2xl">
+            <ul id="sugestoes-cidade" role="listbox" className="popover card divisor absolute inset-x-0 top-full z-30 mt-2 overflow-hidden !rounded-2xl shadow-2xl">
               {sugestoes.map((c, i) => (
                 <li key={c[0]} role="option" aria-selected={i === destaque}>
                   <button

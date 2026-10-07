@@ -9,6 +9,8 @@ import { Proposicoes } from "@/components/perfil/Proposicoes";
 import { Avatar, Barra, CabecalhoCard, Card, Metrica, Partido } from "@/components/ui";
 import { indiceVotacoes, obterParlamentar } from "@/lib/dados";
 import { cargo, idade, numero, pct, reaisCompacto, tituloVotacao } from "@/lib/formato";
+import { Contador } from "@/components/Contador";
+import { Compartilhado, Pagina } from "@/components/Pagina";
 
 // Gerada na primeira visita e guardada em cache por um dia (ou até a próxima atualização de dados).
 export const revalidate = 86400;
@@ -37,7 +39,9 @@ function MetricaBarra({ rotulo, valor, explicacao }: { rotulo: string; valor: nu
     <div>
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm text-muted">{rotulo}</span>
-        <span className="numero text-2xl text-ink">{pct(valor, 0)}</span>
+        <span className="numero text-2xl text-ink">
+          <Contador valor={valor} formato="pct0" />
+        </span>
       </div>
       <div className="mt-2">
         <Barra valor={valor ?? 0} />
@@ -62,16 +66,20 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
   const ref = p.casa === "senado" ? "maioria do partido" : "orientação do partido";
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <Pagina className="grid gap-4 lg:grid-cols-2">
       <Card className="lg:col-span-2">
         <div className="flex items-start gap-4">
-          <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={72} />
+          <Compartilhado nome={`avatar-${p.slug}`}>
+            <Avatar nome={p.nome} foto={p.foto} partido={p.partido} tamanho={72} />
+          </Compartilhado>
           <div className="min-w-0 flex-1">
             <p className="text-sm text-muted">
               {cargo(p.casa, p.sexo)} · {p.uf}
               {!p.emExercicio && <span className="ml-2 rounded-full bg-card-2 px-2 py-0.5 text-xs text-ink-2">fora do exercício</span>}
             </p>
-            <h1 className="titulo mt-0.5 text-[34px] leading-tight text-ink">{p.nome}</h1>
+            <Compartilhado nome={`nome-${p.slug}`}>
+              <h1 className="titulo mt-0.5 w-fit text-[34px] leading-tight text-ink">{p.nome}</h1>
+            </Compartilhado>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
               <Partido sigla={p.partido} />
               {anos && <span className="text-sm text-muted">{anos} anos</span>}
@@ -92,10 +100,10 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-5 sm:grid-cols-4">
-          <Metrica rotulo="Projetos (autor)" valor={numero(m.proposicoesApresentadas)} />
-          <Metrica rotulo="Cota parlamentar" valor={reaisCompacto(m.gastoCotaTotal)} />
-          <Metrica rotulo="Emendas pagas" valor={reaisCompacto(m.emendasPagasTotal)} />
-          <Metrica rotulo={p.eleicao ? `Votos em ${p.eleicao.ano}` : "Votos"} valor={p.eleicao ? numero(p.eleicao.votosTotais) : "—"} />
+          <Metrica rotulo="Projetos (autor)" valor={<Contador valor={m.proposicoesApresentadas} />} />
+          <Metrica rotulo="Cota parlamentar" valor={<Contador valor={m.gastoCotaTotal} formato="reaisCompacto" />} />
+          <Metrica rotulo="Emendas pagas" valor={<Contador valor={m.emendasPagasTotal} formato="reaisCompacto" />} />
+          <Metrica rotulo={p.eleicao ? `Votos em ${p.eleicao.ano}` : "Votos"} valor={<Contador valor={p.eleicao?.votosTotais ?? null} />} />
         </div>
 
         <p className="mt-5 text-xs text-muted">
@@ -160,6 +168,6 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
         <CabecalhoCard titulo="Projetos apresentados" aside="nesta legislatura" />
         <Proposicoes proposicoes={p.proposicoes} />
       </Card>
-    </div>
+    </Pagina>
   );
 }

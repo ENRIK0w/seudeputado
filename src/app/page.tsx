@@ -5,6 +5,8 @@ import { BarraEspectro, Hemiciclo, LegendaPartidos } from "@/components/Hemicicl
 import { Card, CabecalhoCard, LinkSeta } from "@/components/ui";
 import { VotacaoItem } from "@/components/VotacaoItem";
 import { listarParlamentares, listarVotacoes, obterComposicao } from "@/lib/dados";
+import { Contador } from "@/components/Contador";
+import { Pagina } from "@/components/Pagina";
 
 export const revalidate = 86400;
 
@@ -14,13 +16,13 @@ export default function Inicio() {
   const total = listarParlamentares().filter((p) => p.emExercicio).length;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+    <Pagina className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
       <Card className="lg:col-span-2">
         <h1 className="titulo text-[32px] leading-[1.1] sm:text-[40px]">
           Quem te representa em Brasília, <span className="text-accent">voto a voto</span>.
         </h1>
         <p className="mt-3 max-w-2xl text-ink-2">
-          {total} deputados e senadores em exercício. Como votaram, o que propuseram, quanto gastaram da cota, para onde
+          <Contador valor={total} /> deputados e senadores em exercício. Como votaram, o que propuseram, quanto gastaram da cota, para onde
           mandaram emendas e onde foram votados.
         </p>
         <div className="mt-5 max-w-xl">
@@ -59,12 +61,12 @@ export default function Inicio() {
           </p>
           <Link
             href="/cidade/"
-            className="mt-4 inline-flex rounded-full bg-ink px-5 py-2.5 text-[15px] font-medium text-bg hover:opacity-90"
+            className="pressionavel mt-4 inline-flex rounded-full bg-ink px-5 py-2.5 text-[15px] font-medium text-bg hover:opacity-90"
           >
             Buscar minha cidade
           </Link>
         </Card>
       </div>
-    </div>
+    </Pagina>
   );
 }

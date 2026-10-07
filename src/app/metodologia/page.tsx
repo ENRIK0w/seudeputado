@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Card } from "@/components/ui";
 import { obterMeta } from "@/lib/dados";
 import { data } from "@/lib/formato";
+import { Pagina } from "@/components/Pagina";
 
 export const revalidate = 86400;
 
@@ -10,6 +11,7 @@ export const metadata: Metadata = { title: "Metodologia e fontes" };
 export default function Metodologia() {
   const meta = obterMeta();
   return (
+    <Pagina>
     <Card className="mx-auto max-w-3xl">
       <h1 className="titulo text-[32px]">Metodologia e fontes</h1>
       <div className="mt-4 space-y-4 leading-relaxed text-ink-2 [&_h2]:mt-8 [&_h2]:text-lg [&_h2]:font-medium [&_h2]:text-ink [&_strong]:text-ink">
@@ -70,5 +72,6 @@ export default function Metodologia() {
         <p className="text-sm text-muted">Última atualização: {data(meta.geradoEm)}.</p>
       </div>
     </Card>
+    </Pagina>
   );
 }

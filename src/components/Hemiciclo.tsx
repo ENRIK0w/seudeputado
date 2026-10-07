@@ -1,6 +1,7 @@
 import { corPartido, CORES_ESPECTRO, espectroDe, ordemEspectro, type Espectro } from "@/lib/partidos";
 import type { Composicao } from "@/lib/types";
 import { numero } from "@/lib/formato";
+import { Contador } from "./Contador";
 
 /** Posições das cadeiras num semicírculo, da esquerda para a direita. */
 function cadeiras(total: number) {
@@ -34,9 +35,9 @@ export function Hemiciclo({ composicao }: { composicao: Composicao }) {
   const vb = 1 + raioPonto * 2;
 
   return (
-    <svg viewBox={`${-vb} ${-vb} ${vb * 2} ${vb + raioPonto * 2}`} className="w-full" role="img" aria-label={`Composição: ${partidos.map((p) => `${p.partido} ${p.cadeiras}`).join(", ")}`}>
+    <svg viewBox={`${-vb} ${-vb} ${vb * 2} ${vb + raioPonto * 2}`} className="w-full" data-animar role="img" aria-label={`Composição: ${partidos.map((p) => `${p.partido} ${p.cadeiras}`).join(", ")}`}>
       {pontos.map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r={raioPonto} fill={corPartido(sequencia[i])}>
+        <circle key={i} className="anim-ponto" style={{ ["--i" as string]: i }} cx={pt.x} cy={pt.y} r={raioPonto} fill={corPartido(sequencia[i])}>
           <title>{sequencia[i]}</title>
         </circle>
       ))}
@@ -60,18 +61,22 @@ export function BarraEspectro({ composicao }: { composicao: Composicao }) {
     <div>
       <div className="flex items-end justify-between text-sm">
         <span className="text-ink-2">
-          Esquerda <span className="numero text-2xl text-ink">{soma.esquerda}</span>
+          Esquerda <span className="numero text-2xl text-ink"><Contador valor={soma.esquerda} /></span>
         </span>
         <span className="text-ink-2">
-          Centro <span className="numero text-2xl text-ink">{soma.centro}</span>
+          Centro <span className="numero text-2xl text-ink"><Contador valor={soma.centro} /></span>
         </span>
         <span className="text-ink-2">
-          <span className="numero text-2xl text-ink">{soma.direita}</span> Direita
+          <span className="numero text-2xl text-ink"><Contador valor={soma.direita} /></span> Direita
         </span>
       </div>
-      <div className="relative mt-2 flex h-1.5 gap-[2px]">
-        {ordem.map((e) => (
-          <div key={e} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${(soma[e] / total) * 100}%`, background: CORES_ESPECTRO[e] }} />
+      <div className="relative mt-2 flex h-1.5 gap-[2px]" data-animar>
+        {ordem.map((e, i) => (
+          <div
+            key={e}
+            className="anim-barra h-full first:rounded-l-full last:rounded-r-full"
+            style={{ width: `${(soma[e] / total) * 100}%`, background: CORES_ESPECTRO[e], ["--i" as string]: i * 4 }}
+          />
         ))}
         <div className="absolute -top-1 h-3.5 w-0.5 rounded bg-ink" style={{ left: `${(maioria / total) * 100}%` }} aria-hidden />
       </div>

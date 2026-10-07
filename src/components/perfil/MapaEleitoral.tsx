@@ -58,23 +58,33 @@ export function MapaEleitoral({ slug, uf }: { slug: string; uf: string }) {
     proj.translate([proj.translate()[0], proj.translate()[1] - y0]);
     const max = Math.max(...Object.values(mapa.municipios).map((m) => m.pct), 0.0001);
     const escala = scaleSequentialSqrt(interpolateRgb("#1d2238", "#9db4ff")).domain([0, max]);
-    return { caminhos: geo.features.map((f) => ({ f, d: path(f) ?? "" })), escala, max, altura: Math.ceil(y1 - y0) };
+    // Atraso de cada município proporcional à distância do reduto: a cor "se espalha" a partir dele.
+    const reduto = geo.features.reduce((a, b) => ((mapa.municipios[b.properties.codarea]?.pct ?? 0) > (mapa.municipios[a.properties.codarea]?.pct ?? 0) ? b : a));
+    const [rx, ry] = path.centroid(reduto);
+    const caminhos = geo.features.map((f) => {
+      const [cx, cy] = path.centroid(f);
+      return { f, d: path(f) ?? "", atraso: Math.round(Math.hypot(cx - rx, cy - ry) * 2.2) };
+    });
+    return { caminhos, escala, max, altura: Math.ceil(y1 - y0) };
   }, [geo, mapa]);
 
   if (erro) return <p className="rounded-xl bg-card-2 px-4 py-6 text-center text-sm text-muted">Mapa eleitoral indisponível para este parlamentar.</p>;
   if (!escala || !mapa) return <div className="aspect-square animate-pulse rounded-xl bg-card-2" />;
 
+
   const dadosFoco = foco ? mapa.municipios[foco.f.properties.codarea] : null;
 
   return (
     <figure className="relative">
-      <svg viewBox={`0 0 ${L} ${altura}`} className="w-full" role="img" aria-label={`Votos por município em ${uf}, eleição de ${mapa.ano}`} onMouseLeave={() => setFoco(null)}>
-        {caminhos.map(({ f, d }) => {
+      <svg viewBox={`0 0 ${L} ${altura}`} className="w-full" data-animar role="img" aria-label={`Votos por município em ${uf}, eleição de ${mapa.ano}`} onMouseLeave={() => setFoco(null)}>
+        {caminhos.map(({ f, d, atraso }) => {
           const m = mapa.municipios[f.properties.codarea];
           const ativo = foco?.f === f;
           return (
             <path
               key={f.properties.codarea}
+              className="anim-area"
+              style={{ ["--i" as string]: atraso }}
               d={d}
               fill={m ? escala(m.pct) : "var(--card-2)"}
               stroke={ativo ? "var(--ink)" : "var(--card)"}

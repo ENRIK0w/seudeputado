@@ -81,8 +81,9 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
       </div>
 
       <div className="relative mt-3">
-        <div className="flex flex-wrap gap-[3px]" role="img" aria-label={`Mapa de ${votos.length} votações`} onMouseLeave={() => setFoco(null)}>
-          {cronologico.map((v) => {
+        {/* key: quando o histórico completo chega, a grade remonta e anima de novo */}
+        <div key={votos.length} className="flex flex-wrap gap-[3px]" data-animar role="img" aria-label={`Mapa de ${votos.length} votações`} onMouseLeave={() => setFoco(null)}>
+          {cronologico.map((v, i) => {
             const destaque = filtro !== "todos" && passa(v, filtro);
             return (
               <Link
@@ -91,10 +92,11 @@ export function HistoricoVotos({ slug, recentes, descricoes }: { slug: string; r
                 onMouseEnter={() => setFoco(v)}
                 onFocus={() => setFoco(v)}
                 aria-label={`${data(v.data)}: ${ROTULO_VOTO[v.voto]}`}
-                className="size-[11px] rounded-[3px] transition-opacity"
+                className="anim-quadrado size-[11px] rounded-[3px]"
+                data-apagado={filtro !== "todos" && !destaque ? "" : undefined}
                 style={{
+                  ["--i" as string]: i,
                   background: COR_VOTO[v.voto],
-                  opacity: filtro === "todos" || destaque ? 1 : 0.18,
                   outline: foco === v ? "2px solid var(--ink)" : undefined,
                 }}
               />

@@ -112,8 +112,11 @@ body {
   color: var(--ink);
 }
 .pilula[data-ativa="true"] {
-  background: var(--card-2);
   color: var(--ink);
+}
+/* Abas sem indicador deslizante (botões simples) mantêm o fundo */
+button.pilula[data-ativa="true"]:not(.com-indicador) {
+  background: var(--card-2);
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
@@ -124,4 +127,237 @@ body {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ===================================================================== */
+/* Movimento                                                              */
+/* Curvas no estilo iOS: saída rápida e chegada suave, sem "quicar".      */
+/* Tudo desliga com prefers-reduced-motion (fim do arquivo).              */
+/* ===================================================================== */
+:root {
+  --mola: cubic-bezier(0.32, 0.72, 0, 1); /* folhas e popovers do iOS */
+  --expo: cubic-bezier(0.16, 1, 0.3, 1); /* ease-out expo */
+}
+
+/* ---- Transição entre páginas (View Transitions) ---- */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(.pagina) {
+  animation: 180ms ease-in both pagina-sai;
+}
+::view-transition-new(.pagina) {
+  animation: 520ms var(--mola) 60ms both pagina-entra;
+}
+@keyframes pagina-sai {
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: blur(2px);
+  }
+}
+@keyframes pagina-entra {
+  from {
+    opacity: 0;
+    transform: scale(1.02) translateY(8px);
+    filter: blur(6px);
+  }
+}
+/* Foto e nome "voam" da lista para o perfil */
+::view-transition-group(.morph) {
+  animation-duration: 480ms;
+  animation-timing-function: var(--mola);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: morph-blur;
+}
+@keyframes morph-blur {
+  40% {
+    filter: blur(2px);
+  }
+}
+/* Cabeçalho parado enquanto o conteúdo troca; a pílula ativa desliza */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+::view-transition-group(site-nav) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-nav) {
+  display: none;
+}
+::view-transition-new(site-nav) {
+  animation: none;
+}
+::view-transition-group(nav-ativa) {
+  animation-duration: 420ms;
+  animation-timing-function: var(--mola);
+  z-index: 101;
+}
+
+/* ---- Entrada dos cards em cascata ---- */
+.cascata > * {
+  animation: surgir 700ms var(--expo) both;
+  animation-delay: calc(var(--n, 0) * 70ms);
+}
+.cascata > :nth-child(2) { --n: 1; }
+.cascata > :nth-child(3) { --n: 2; }
+.cascata > :nth-child(4) { --n: 3; }
+.cascata > :nth-child(5) { --n: 4; }
+.cascata > :nth-child(6) { --n: 5; }
+.cascata > :nth-child(7) { --n: 6; }
+.cascata > :nth-child(n + 8) { --n: 7; }
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+
+/* ---- Animações disparadas quando o elemento aparece na tela ---- */
+/* Só escondemos o estado inicial se o JS de animação estiver ativo (html[data-anim]). */
+html[data-anim] [data-animar]:not([data-visivel]) .anim-barra {
+  transform: scaleX(0);
+}
+.anim-barra {
+  transform-origin: left center;
+  transition: transform 1000ms var(--expo);
+  transition-delay: calc(var(--i, 0) * 45ms);
+}
+
+html[data-anim] [data-animar]:not([data-visivel]) .anim-ponto {
+  opacity: 0;
+  transform: scale(0.2);
+}
+.anim-ponto {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 380ms ease-out,
+    transform 520ms var(--mola);
+  transition-delay: calc(var(--i, 0) * 1.4ms);
+}
+
+html[data-anim] [data-animar]:not([data-visivel]) .anim-quadrado {
+  opacity: 0;
+  transform: scale(0.4);
+}
+.anim-quadrado {
+  transition:
+    opacity 300ms ease-out,
+    transform 420ms var(--mola);
+  transition-delay: calc(var(--i, 0) * 0.7ms);
+}
+
+html[data-anim] [data-animar]:not([data-visivel]) .anim-area {
+  opacity: 0;
+}
+.anim-area {
+  transition: opacity 600ms ease-out;
+  transition-delay: calc(var(--i, 0) * 1ms);
+}
+
+html[data-anim] [data-animar]:not([data-visivel]) .anim-subir {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.anim-subir {
+  transition:
+    opacity 600ms ease-out,
+    transform 700ms var(--expo);
+  transition-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* ---- Popovers (resultados de busca) ---- */
+.popover {
+  transform-origin: top center;
+  animation: popover 260ms var(--mola) both;
+}
+@keyframes popover {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+
+/* ---- Abrir/fechar grupos (altura animada) ---- */
+.expansivel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 420ms var(--mola);
+}
+.expansivel[data-aberto="true"] {
+  grid-template-rows: 1fr;
+}
+.expansivel > * {
+  overflow: hidden;
+}
+
+/* ---- Toque: leve afundar; cards levantam no hover (desktop) ---- */
+.pressionavel {
+  transition: transform 160ms var(--mola), background-color 160ms ease;
+}
+.pressionavel:active {
+  transform: scale(0.975);
+}
+@media (hover: hover) {
+  .card-link {
+    transition:
+      transform 300ms var(--mola),
+      border-color 300ms ease;
+  }
+  .card-link:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--ink) 18%, var(--line));
+  }
+}
+
+/* ---- Indicador deslizante das abas ---- */
+.indicador {
+  transition:
+    transform 420ms var(--mola),
+    width 420ms var(--mola);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after,
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
+
+/* Colunas (gasto mensal) sobem a partir da base */
+html[data-anim] [data-animar]:not([data-visivel]) .anim-coluna {
+  transform: scaleY(0);
+}
+.anim-coluna {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transition: transform 900ms var(--expo);
+  transition-delay: calc(var(--i, 0) * 18ms);
+}
+
+/* Grade de votos: filtro esmaece os quadrados fora do recorte */
+.anim-quadrado[data-apagado] {
+  opacity: 0.18;
+}
+
+/* Quando a própria barra é o alvo observado */
+html[data-anim] .anim-barra[data-animar]:not([data-visivel]) {
+  transform: scaleX(0);
 }

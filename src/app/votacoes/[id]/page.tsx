@@ -6,6 +6,8 @@ import { indiceParlamentares, obterVotacao } from "@/lib/dados";
 import { COR_VOTO, data, numero, ROTULO_VOTO } from "@/lib/formato";
 import { corPartido } from "@/lib/partidos";
 import type { VotoTipo } from "@/lib/types";
+import { Contador } from "@/components/Contador";
+import { Pagina } from "@/components/Pagina";
 
 // Gerada na primeira visita e guardada em cache por um dia (ou até a próxima atualização de dados).
 export const revalidate = 86400;
@@ -32,7 +34,7 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
   const maxPartido = Math.max(...v.porPartido.map((p) => p.sim + p.nao + p.outros), 1);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <Pagina className="grid gap-4 lg:grid-cols-2">
       <Card className="lg:col-span-2">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
           <span className="rounded-full border border-line px-2.5 py-0.5">{v.casa === "camara" ? "Câmara dos Deputados" : "Senado Federal"}</span>
@@ -46,7 +48,9 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
         <div className="mt-6 flex items-end justify-between">
           <div>
             <div className="text-sm text-ink-2">Sim</div>
-            <div className="numero text-[44px] leading-none text-ink">{v.placar.sim}</div>
+            <div className="numero text-[44px] leading-none text-ink">
+              <Contador valor={v.placar.sim} />
+            </div>
           </div>
           <div className="pb-1 text-center text-sm text-muted">
             {v.placar.abstencao > 0 && <div>{v.placar.abstencao} abstenções</div>}
@@ -55,12 +59,14 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
           </div>
           <div className="text-right">
             <div className="text-sm text-ink-2">Não</div>
-            <div className="numero text-[44px] leading-none text-ink">{v.placar.nao}</div>
+            <div className="numero text-[44px] leading-none text-ink">
+              <Contador valor={v.placar.nao} />
+            </div>
           </div>
         </div>
-        <div className="relative mt-3 flex h-2 gap-[2px]">
-          <div className="rounded-l-full bg-sim" style={{ width: `${(v.placar.sim / validos) * 100}%` }} />
-          <div className="rounded-r-full bg-nao" style={{ width: `${(v.placar.nao / validos) * 100}%` }} />
+        <div className="relative mt-3 flex h-2 gap-[2px]" data-animar>
+          <div className="anim-barra rounded-l-full bg-sim" style={{ width: `${(v.placar.sim / validos) * 100}%` }} />
+          <div className="anim-barra rounded-r-full bg-nao" style={{ width: `${(v.placar.nao / validos) * 100}%`, ["--i" as string]: 8 }} />
           <div className="absolute -top-1 left-1/2 h-4 w-0.5 rounded bg-ink" aria-hidden />
         </div>
         {v.url !== "#" && (
@@ -75,7 +81,7 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
       <Card>
         <CabecalhoCard titulo="Como cada partido votou" />
         <ul className="space-y-3">
-          {v.porPartido.map((p) => {
+          {v.porPartido.map((p, i) => {
             const t = p.sim + p.nao + p.outros;
             return (
               <li key={p.partido} className="grid grid-cols-[96px_1fr_auto] items-center gap-3 text-sm">
@@ -83,7 +89,12 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
                   <span className="size-2 rounded-full" style={{ background: corPartido(p.partido) }} aria-hidden />
                   {p.partido}
                 </span>
-                <div className="flex h-2 gap-[2px]" style={{ width: `${(t / maxPartido) * 100}%` }} title={`Sim ${p.sim} · Não ${p.nao} · outros ${p.outros}`}>
+                <div
+                  className="anim-barra flex h-2 gap-[2px]"
+                  data-animar
+                  style={{ width: `${(t / maxPartido) * 100}%`, ["--i" as string]: i }}
+                  title={`Sim ${p.sim} · Não ${p.nao} · outros ${p.outros}`}
+                >
                   {p.sim > 0 && <div className="rounded-l-full bg-sim first:rounded-l-full last:rounded-r-full" style={{ flex: p.sim }} />}
                   {p.nao > 0 && <div className="bg-nao first:rounded-l-full last:rounded-r-full" style={{ flex: p.nao }} />}
                   {p.outros > 0 && <div className="bg-[var(--muted)] first:rounded-l-full last:rounded-r-full" style={{ flex: p.outros }} />}
@@ -140,6 +151,6 @@ export default async function PaginaVotacao({ params }: PageProps<"/votacoes/[id
           }))}
         />
       </Card>
-    </div>
+    </Pagina>
   );
 }

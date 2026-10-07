@@ -1,5 +1,6 @@
 import { numero, reais, reaisCompacto } from "@/lib/formato";
 import type { EmendaResumo } from "@/lib/types";
+import { Contador } from "../Contador";
 import { Barra, Metrica, Vazio } from "../ui";
 
 export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
@@ -28,19 +29,19 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
-        <Metrica rotulo="Empenhado" valor={reaisCompacto(empenhado)} detalhe={`${numero(emendas.length)} emendas`} />
-        <Metrica rotulo="Pago" valor={reaisCompacto(pago)} detalhe={`${Math.round((pago / (empenhado || 1)) * 100)}% do empenhado`} />
+        <Metrica rotulo="Empenhado" valor={<Contador valor={empenhado} formato="reaisCompacto" />} detalhe={`${numero(emendas.length)} emendas`} />
+        <Metrica rotulo="Pago" valor={<Contador valor={pago} formato="reaisCompacto" />} detalhe={`${Math.round((pago / (empenhado || 1)) * 100)}% do empenhado`} />
       </div>
 
       <div>
         <h3 className="mb-3 text-sm text-muted">Por ano — empenhado e pago</h3>
         <ul className="space-y-2.5">
-          {porAno.map(([ano, v]) => (
+          {porAno.map(([ano, v], i) => (
             <li key={ano} className="grid grid-cols-[40px_1fr_auto] items-center gap-3 text-sm">
               <span className="text-ink-2">{ano}</span>
-              <div className="relative h-2 rounded-full bg-card-2">
-                <div className="absolute inset-y-0 left-0 rounded-full bg-accent/35" style={{ width: `${(v.empenhado / maxAno) * 100}%` }} />
-                <div className="absolute inset-y-0 left-0 rounded-full bg-accent" style={{ width: `${(v.pago / maxAno) * 100}%` }} />
+              <div className="relative h-2 rounded-full bg-card-2" data-animar>
+                <div className="anim-barra absolute inset-y-0 left-0 rounded-full bg-accent/35" style={{ width: `${(v.empenhado / maxAno) * 100}%`, ["--i" as string]: i * 2 }} />
+                <div className="anim-barra absolute inset-y-0 left-0 rounded-full bg-accent" style={{ width: `${(v.pago / maxAno) * 100}%`, ["--i" as string]: i * 2 + 4 }} />
               </div>
               <span className="text-ink">{reaisCompacto(v.empenhado)}</span>
             </li>
@@ -55,13 +56,13 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
       <div>
         <h3 className="mb-3 text-sm text-muted">Para onde foi</h3>
         <ul className="space-y-3">
-          {porMunicipio.slice(0, 8).map(([nome, v]) => (
+          {porMunicipio.slice(0, 8).map(([nome, v], i) => (
             <li key={nome}>
               <div className="mb-1 flex justify-between gap-3 text-sm">
                 <span className="truncate text-ink-2">{nome}</span>
                 <span className="shrink-0 text-ink" title={`Pago: ${reais(v.pago)}`}>{reaisCompacto(v.empenhado)}</span>
               </div>
-              <Barra valor={v.empenhado / maxMun} />
+              <Barra valor={v.empenhado / maxMun} indice={i} />
             </li>
           ))}
         </ul>

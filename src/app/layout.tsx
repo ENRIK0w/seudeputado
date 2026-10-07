@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Navegacao } from "@/components/Navegacao";
+import { Revelador, SCRIPT_ANIMACAO } from "@/components/Revelador";
 import { obterMeta } from "@/lib/dados";
 import { data } from "@/lib/formato";
 import "./globals.css";
@@ -16,15 +17,20 @@ export const viewport: Viewport = { themeColor: "#0b0b0d", width: "device-width"
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const meta = obterMeta();
   return (
-    <html lang="pt-BR">
+    // suppressHydrationWarning: o script abaixo acrescenta data-anim no <html> antes do React.
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_ANIMACAO }} />
+      </head>
       <body className="min-h-dvh">
+        <Revelador />
         {meta.exemplo && (
           <div className="bg-[#2a2110] px-4 py-2 text-center text-[13px] text-[#f3d28b]">
             Dados de <strong>exemplo</strong>: nomes, votos e valores são fictícios. Rode <code>npm run dados</code> para usar os dados oficiais.
           </div>
         )}
         <div className="mx-auto w-full max-w-5xl px-4">
-          <header className="flex items-center justify-between gap-4 pt-5 pb-4">
+          <header className="flex items-center justify-between gap-4 pt-5 pb-4" style={{ viewTransitionName: "site-header" }}>
             <Link href="/" className="leading-none">
               <span className="titulo block text-[26px] text-ink">Seu Deputado</span>
               <span className="mt-1 block text-[13px] text-muted">dossiê aberto do Congresso</span>
@@ -32,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link
               href="/parlamentares/"
               aria-label="Buscar parlamentar"
-              className="inline-flex size-11 items-center justify-center rounded-full border border-line bg-card text-ink-2 hover:text-ink"
+              className="pressionavel inline-flex size-11 items-center justify-center rounded-full border border-line bg-card text-ink-2 hover:text-ink"
             >
               <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                 <circle cx="11" cy="11" r="7" />
@@ -40,7 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </svg>
             </Link>
           </header>
-          <div className="sticky top-0 z-20 -mx-4 bg-bg/90 px-4 py-2 backdrop-blur">
+          <div className="sticky top-0 z-20 -mx-4 bg-bg/90 px-4 py-2 backdrop-blur" style={{ viewTransitionName: "site-nav" }}>
             <Navegacao />
           </div>
           <main className="py-4">{children}</main>

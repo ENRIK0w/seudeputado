@@ -12,14 +12,14 @@ export function HistoricoPartidos({ periodos }: { periodos: PeriodoPartido[] }) 
   const recentes = [...periodos].reverse();
   return (
     <div>
-      <div className="flex h-2 gap-[2px]" role="img" aria-label={periodos.map((p) => `${p.partido}: ${duracao(p.inicio, p.fim)}`).join("; ")}>
+      <div className="flex h-2 gap-[2px]" data-animar role="img" aria-label={periodos.map((p) => `${p.partido}: ${duracao(p.inicio, p.fim)}`).join("; ")}>
         {periodos.map((p, i) => {
           const w = ((new Date(p.fim ?? hoje).getTime() - new Date(p.inicio).getTime()) / span) * 100;
           return (
             <div
               key={i}
-              className="h-full first:rounded-l-full last:rounded-r-full"
-              style={{ width: `${Math.max(w, 1.5)}%`, background: corPartido(p.partido) }}
+              className="anim-barra h-full first:rounded-l-full last:rounded-r-full"
+              style={{ width: `${Math.max(w, 1.5)}%`, background: corPartido(p.partido), ["--i" as string]: i * 3 }}
               title={`${p.partido} · ${duracao(p.inicio, p.fim)}`}
             />
           );

@@ -49,10 +49,13 @@ export function Avatar({ nome, foto, partido, tamanho = 40 }: { nome: string; fo
 }
 
 /** Barra fina de progresso 0–1, ponta arredondada. */
-export function Barra({ valor, cor = "var(--accent)", altura = 4 }: { valor: number; cor?: string; altura?: number }) {
+export function Barra({ valor, cor = "var(--accent)", altura = 4, indice = 0 }: { valor: number; cor?: string; altura?: number; indice?: number }) {
   return (
-    <div className="w-full rounded-full bg-card-2" style={{ height: altura }}>
-      <div className="h-full rounded-full" style={{ width: `${Math.max(0, Math.min(1, valor)) * 100}%`, background: cor }} />
+    <div className="w-full rounded-full bg-card-2" style={{ height: altura }} data-animar>
+      <div
+        className="anim-barra h-full rounded-full"
+        style={{ width: `${Math.max(0, Math.min(1, valor)) * 100}%`, background: cor, ["--i" as string]: indice }}
+      />
     </div>
   );
 }
