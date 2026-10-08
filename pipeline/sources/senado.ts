@@ -51,10 +51,25 @@ interface VotoBruto {
   sigla: string;
 }
 
-/** Endpoint novo: todas as votações do ano com os votos de cada senador. */
+const listaVotacoes = (dados: unknown): unknown[] => (Array.isArray(dados) ? dados : arr(campo(campo(dados, "ListaVotacoes"), "Votacoes")));
+
+/**
+ * Endpoint novo: votações com os votos de cada senador.
+ * Atenção: `?ano=` filtra pelo ano da MATÉRIA, não da votação — uma PEC de 2015
+ * votada em 2026 não vem em `ano=2026`. Por isso buscamos também pelo período da
+ * sessão (dataInicio/dataFim) e juntamos as duas listas, sem repetir.
+ */
 async function votacoesDoAno(ano: number): Promise<VotoBruto[]> {
-  const dados = await getJson<unknown>(`${API}/votacao?ano=${ano}`, { maxIdadeHoras: cacheDoAno(ano) });
-  const lista = Array.isArray(dados) ? dados : arr(campo(campo(dados, "ListaVotacoes"), "Votacoes"));
+  const porMateria = listaVotacoes(await getJson<unknown>(`${API}/votacao?ano=${ano}`, { maxIdadeHoras: cacheDoAno(ano) }));
+  let porData: unknown[] = [];
+  try {
+    porData = listaVotacoes(await getJson<unknown>(`${API}/votacao?dataInicio=${ano}-01-01&dataFim=${ano}-12-31`, { maxIdadeHoras: cacheDoAno(ano) }));
+  } catch (e) {
+    console.warn(`  ! votacao por data ${ano}: ${(e as Error).message}`);
+  }
+  const chave = (v: unknown) => String(campo(v, "codigoSessaoVotacao", "CodigoSessaoVotacao"));
+  const lista = [...new Map([...porMateria, ...porData].map((v) => [chave(v), v])).values()];
+  console.log(`  · votações ${ano}: ${porMateria.length} pelo ano da matéria, ${porData.length} pela data da sessão, ${lista.length} juntando`);
   // Diagnóstico: o que veio do Senado neste ano (ajuda a achar votações que não entram)
   const secretas = lista.filter((v) => normalizarNome(String(campo(v, "votacaoSecreta", "VotacaoSecreta") ?? "")) === "S").length;
   const semVotos = lista.filter((v) => arr(campo<unknown[]>(v, "votos", "Votos")).length === 0).length;
