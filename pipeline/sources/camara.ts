@@ -9,7 +9,7 @@ import type {
 } from "../../src/lib/types";
 import { download, emParalelo, getJson } from "../lib/http";
 import { acrescentar, anosDaLegislatura, cacheDoAno, dataISO, lerCsv, lerZip, mapearVoto, normalizarNome, numeroBR, somenteDigitos } from "../lib/util";
-import { agregarGastos, type Despesa } from "./gastos";
+import { agregarGastos, detalharGastos, type Despesa } from "./gastos";
 import { limparDescricao } from "../../src/lib/formato";
 import { buscarOrientacao, metricasVazias, type ColetaCasa } from "./comum";
 
@@ -386,6 +386,9 @@ export async function coletarCamara(): Promise<ColetaCasa> {
             documento: r.txtCNPJCPF,
             mes: `${r.numAno}-${String(r.numMes).padStart(2, "0")}`,
             valor: numeroBR(r.vlrLiquido),
+            data: dataISO(r.datEmissao),
+            descricao: [r.txtDescricaoEspecificacao, r.txtTrecho, r.txtPassageiro && `passageiro: ${r.txtPassageiro}`].filter(Boolean).join(" · ") || null,
+            url: r.urlDocumento || null,
           });
         }
       }
@@ -420,6 +423,7 @@ export async function coletarCamara(): Promise<ColetaCasa> {
       votosRecentes: [],
       proposicoes: (propsPorSlug[slug] ?? []).sort((a, b) => b.data.localeCompare(a.data)),
       gastos: agregarGastos(despesasPorSlug[slug] ?? []),
+      detalhes: { ...detalharGastos(despesasPorSlug[slug] ?? []), emendas: [] },
       emendas: [],
       eleicao: null,
     };

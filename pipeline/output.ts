@@ -101,7 +101,10 @@ export async function gravarDataset(ds: Dataset) {
 
   for (const p of ordenados) {
     const votos = [...(ds.votosPorSlug[p.slug] ?? [])].sort((a, b) => b.data.localeCompare(a.data));
-    await gravar(path.join(DATA, "parlamentares", `${p.slug}.json`), { ...p, votosRecentes: votos.slice(0, VOTOS_RECENTES) });
+    // Detalhes das folhas ficam num arquivo à parte, baixado só quando o leitor abre uma
+    const { detalhes, ...perfil } = p;
+    await gravar(path.join(DATA, "parlamentares", `${p.slug}.json`), { ...perfil, votosRecentes: votos.slice(0, VOTOS_RECENTES) });
+    if (detalhes) await gravar(path.join(PUB, "detalhes", `${p.slug}.json`), detalhes);
     await gravar(path.join(PUB, "votos", `${p.slug}.json`), compactarVotos(p.casa, votos));
     if (ds.eleicaoMapas[p.slug]) await gravar(path.join(PUB, "eleicao", `${p.slug}.json`), ds.eleicaoMapas[p.slug]);
   }

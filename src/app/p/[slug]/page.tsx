@@ -12,6 +12,7 @@ import { indiceVotacoes, obterParlamentar } from "@/lib/dados";
 import { cargo, idade, numero, pct, reaisCompacto, tituloVotacao } from "@/lib/formato";
 import { Contador } from "@/components/Contador";
 import { Pagina } from "@/components/Pagina";
+import { InfoFolha } from "@/components/InfoFolha";
 
 // Gerada na primeira visita e guardada em cache por um dia (ou até a próxima atualização de dados).
 export const revalidate = 86400;
@@ -35,11 +36,18 @@ export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Prom
   };
 }
 
-function MetricaBarra({ rotulo, valor, explicacao }: { rotulo: string; valor: number | null; explicacao: string }) {
+function MetricaBarra({ rotulo, valor, explicacao, info }: { rotulo: string; valor: number | null; explicacao: string; info?: ReactNode }) {
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
-        <span className="rotulo">{rotulo}</span>
+        <span className="rotulo inline-flex items-center gap-1.5">
+          {rotulo}
+          {info && (
+            <InfoFolha titulo={rotulo} rotulo="Como calculamos">
+              {info}
+            </InfoFolha>
+          )}
+        </span>
         <span className="numero text-[26px] leading-none text-ink">
           <Contador valor={valor} formato="pct0" />
         </span>
@@ -98,12 +106,71 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
         </dl>
 
         <div className="mt-6 space-y-5">
-          <MetricaBarra rotulo="Participação" valor={m.participacao} explicacao={`votou em ${pct(m.participacao, 0)} das ${numero(m.votacoesConsideradas)} votações nominais no exercício do mandato`} />
-          <MetricaBarra rotulo="Fidelidade partidária" valor={m.fidelidadePartidaria} explicacao={`votos iguais à ${ref}`} />
+          <MetricaBarra
+            rotulo="Participação"
+            valor={m.participacao}
+            explicacao={`votou em ${pct(m.participacao, 0)} das ${numero(m.votacoesConsideradas)} votações nominais no exercício do mandato`}
+            info={
+              <>
+                <p>
+                  Das <strong>{numero(m.votacoesConsideradas)}</strong> votações nominais de plenário que aconteceram enquanto {p.nome} estava no exercício
+                  do mandato, registrou voto (sim, não, abstenção ou obstrução) em{" "}
+                  <strong>{m.participacao != null ? numero(Math.round(m.participacao * m.votacoesConsideradas)) : "—"}</strong>.
+                </p>
+                <p>
+                  <strong>Não é a presença oficial.</strong> Faltas justificadas (licença médica, missão oficial) contam como ausência aqui
+                  {p.casa === "senado" ? ", exceto no Senado, onde licenças e missões ficam fora da conta" : ""}. Votações simbólicas, em que não há
+                  registro de voto individual, não entram.
+                </p>
+              </>
+            }
+          />
+          <MetricaBarra
+            rotulo="Fidelidade partidária"
+            valor={m.fidelidadePartidaria}
+            explicacao={`votos iguais à ${ref}`}
+            info={
+              p.casa === "senado" ? (
+                <>
+                  <p>
+                    O Senado não publica a orientação dos partidos. Por isso comparamos cada voto de {p.nome} com o voto da <strong>maioria da bancada
+                    do partido</strong> ({p.partido}) naquela votação, sem contar o próprio voto.
+                  </p>
+                  <p>Só entram votações em que a maioria do partido votou sim ou não, e só calculamos com pelo menos 10 votações comparáveis.</p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    Percentual de votos de {p.nome} iguais à <strong>orientação do partido</strong> ({p.partido}) — ou do bloco ou federação que o
+                    inclui — nas votações em que houve orientação.
+                  </p>
+                  <p>Quando o partido libera a bancada (&ldquo;liberado&rdquo;), a votação não entra na conta. Só calculamos com pelo menos 10 votações comparáveis.</p>
+                </>
+              )
+            }
+          />
           <MetricaBarra
             rotulo="Alinhamento com o governo"
             valor={m.alinhamentoGoverno}
             explicacao={p.casa === "senado" ? "votos iguais ao do líder do governo" : "votos iguais à orientação do governo"}
+            info={
+              <>
+                <p>
+                  {p.casa === "senado" ? (
+                    <>
+                      Percentual de votos de {p.nome} iguais ao voto do <strong>líder do governo no Senado</strong> nas mesmas votações (o Senado não
+                      publica orientação formal do governo).
+                    </>
+                  ) : (
+                    <>
+                      Percentual de votos de {p.nome} iguais à <strong>orientação da liderança do governo</strong> na Câmara, nas votações em que o governo
+                      orientou.
+                    </>
+                  )}
+                </p>
+                <p>Só calculamos com pelo menos 10 votações comparáveis. É uma medida de alinhamento nas votações, não de posição política.</p>
+              </>
+            }
           />
         </div>
 
@@ -168,12 +235,12 @@ export default async function PaginaParlamentar({ params }: PageProps<"/p/[slug]
         <div className="grid min-w-0 items-start gap-4 xl:grid-cols-2">
           <Card>
             <CabecalhoCard titulo="Emendas" aside="desde 2023" />
-            <Emendas emendas={p.emendas} />
+            <Emendas emendas={p.emendas} slug={p.slug} />
           </Card>
 
           <Card>
             <CabecalhoCard titulo="Cota parlamentar" aside="desde fev/2023" />
-            <Gastos gastos={p.gastos} />
+            <Gastos gastos={p.gastos} slug={p.slug} />
           </Card>
         </div>
 

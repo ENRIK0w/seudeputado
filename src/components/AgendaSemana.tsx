@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
 import { urlDados } from "@/lib/caminho";
+import { Folha } from "./Folha";
+import { RolagemHorizontal } from "./RolagemHorizontal";
 import type { Agenda, EventoAgenda, ItemPauta } from "@/lib/types";
 
 const DIAS_SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
@@ -51,72 +52,22 @@ function Casa({ casa }: { casa: EventoAgenda["casa"] }) {
   );
 }
 
-/** Folha de vidro que sobe de baixo com a pauta completa da sessão. */
+/** Folha com a pauta completa da sessão. */
 function FolhaSessao({ e, fechar }: { e: EventoAgenda; fechar: () => void }) {
-  const botao = useRef<HTMLButtonElement>(null);
-  const inicioToque = useRef<number | null>(null);
-  const [arraste, setArraste] = useState(0);
-
-  useEffect(() => {
-    botao.current?.focus();
-    const esc = (ev: KeyboardEvent) => ev.key === "Escape" && fechar();
-    window.addEventListener("keydown", esc);
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", esc);
-      document.body.style.overflow = overflow;
-    };
-  }, [fechar]);
-
-  return createPortal(
-    <>
-      <div className="folha-fundo" onClick={fechar} aria-hidden />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="folha-titulo"
-        className="folha vidro"
-        style={arraste ? { transform: `translateY(${arraste}px)`, transition: "none" } : undefined}
-      >
-        {/* Alça: arrastar para baixo fecha */}
-        <div
-          className="flex shrink-0 cursor-grab justify-center pt-2.5 pb-1"
-          onTouchStart={(ev) => (inicioToque.current = ev.touches[0].clientY)}
-          onTouchMove={(ev) => inicioToque.current != null && setArraste(Math.max(0, ev.touches[0].clientY - inicioToque.current))}
-          onTouchEnd={() => {
-            if (arraste > 90) fechar();
-            setArraste(0);
-            inicioToque.current = null;
-          }}
-        >
-          <span className="h-[5px] w-10 rounded-full bg-[color-mix(in_srgb,var(--ink)_22%,transparent)]" />
-        </div>
-        <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-1 pb-3">
-          <div className="min-w-0">
-            <div className="rotulo flex flex-wrap gap-x-2">
-              <Casa casa={e.casa} />
-              <span>·</span>
-              <span>
-                {dataLonga(e.data)} · {hora(e.hora)}
-              </span>
-            </div>
-            <h3 id="folha-titulo" className="titulo mt-1.5 text-[22px] text-ink">
-              {tipoLegivel(e.tipo)}
-            </h3>
-          </div>
-          <button
-            ref={botao}
-            onClick={fechar}
-            aria-label="Fechar"
-            className="pressionavel -mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] text-ink-2 hover:text-ink"
-          >
-            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </button>
-        </div>
-        <div className="min-h-0 overflow-y-auto overscroll-contain px-5 pb-5">
+  return (
+    <Folha
+      fechar={fechar}
+      titulo={tipoLegivel(e.tipo)}
+      rotulo={
+        <>
+          <Casa casa={e.casa} />
+          <span>·</span>
+          <span>
+            {dataLonga(e.data)} · {hora(e.hora)}
+          </span>
+        </>
+      }
+    >
           {e.itens.length ? (
             <>
               <p className="rotulo mb-1">
@@ -146,10 +97,7 @@ function FolhaSessao({ e, fechar }: { e: EventoAgenda; fechar: () => void }) {
               Agenda oficial ↗
             </a>
           )}
-        </div>
-      </div>
-    </>,
-    document.body,
+    </Folha>
   );
 }
 
@@ -194,7 +142,7 @@ export function AgendaSemana() {
   const [hoje, setHoje] = useState("");
   const [escolhido, setEscolhido] = useState<string | null>(null);
   const [aberta, setAberta] = useState<EventoAgenda | null>(null);
-  const faixa = useRef<HTMLOListElement>(null);
+  const faixa = useRef<HTMLDivElement>(null);
   const fechar = useCallback(() => setAberta(null), []);
 
   useEffect(() => {
@@ -241,13 +189,14 @@ export function AgendaSemana() {
         </div>
       ) : (
         <>
-          <ol ref={faixa} className="faixa-dias -mx-1 mt-4 px-1" role="tablist" aria-label="Próximos 14 dias">
+          <div ref={faixa} className="-mx-1 mt-4">
+            <RolagemHorizontal className="gap-1 px-1" rotulo="Próximos 14 dias" papel="tablist">
             {dias.map((d) => {
               const sessoes = porDia.get(d) ?? [];
               const ativo = d === escolhido;
               const fimDeSemana = [0, 6].includes(diaSemana(d));
               return (
-                <li key={d}>
+                <div key={d}>
                   <button
                     role="tab"
                     aria-selected={ativo}
@@ -265,10 +214,11 @@ export function AgendaSemana() {
                       ))}
                     </span>
                   </button>
-                </li>
+                </div>
               );
             })}
-          </ol>
+          </RolagemHorizontal>
+          </div>
 
           <div className="mt-1 min-h-20" role="tabpanel" aria-label={escolhido ? dataLonga(escolhido) : undefined}>
             {eventos.length === 0 ? (

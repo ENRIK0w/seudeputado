@@ -144,6 +144,61 @@ export interface EmendaResumo {
   pago: number;
 }
 
+/** Uma nota da cota parlamentar (só as maiores de cada fornecedor vão para o site). */
+export interface NotaCota {
+  data: string | null;
+  valor: number;
+  categoria: string;
+  /** Especificação, trecho de viagem, detalhamento… o que a fonte trouxer. */
+  descricao: string | null;
+  /** Comprovante digitalizado (só a Câmara publica). */
+  url: string | null;
+}
+
+export interface DetalheFornecedor {
+  nome: string;
+  documento: string;
+  total: number;
+  notas: number;
+  categorias: { categoria: string; total: number }[];
+  primeiro: string; // AAAA-MM
+  ultimo: string;
+  maiores: NotaCota[];
+}
+
+export interface DetalheCategoria {
+  total: number;
+  notas: number;
+  fornecedores: { nome: string; documento: string; total: number; notas: number }[];
+  porAno: { ano: string; total: number }[];
+  /** Subdivisões que a Câmara informa (ex.: "Veículos automotores"). */
+  especificacoes: { nome: string; total: number }[];
+}
+
+export interface DetalheMes {
+  total: number;
+  notas: number;
+  categorias: { categoria: string; total: number }[];
+  fornecedores: { nome: string; total: number }[];
+}
+
+export interface EmendaDetalhe extends EmendaResumo {
+  codigo: string;
+  localidade: string | null;
+  subfuncao: string;
+  programa: string;
+  acao: string;
+  liquidado: number;
+}
+
+/** Detalhes para as folhas do perfil (public/data/detalhes/{slug}.json, carregado só quando abre). */
+export interface DetalhesParlamentar {
+  categorias: Record<string, DetalheCategoria>;
+  fornecedores: Record<string, DetalheFornecedor>;
+  meses: Record<string, DetalheMes>;
+  emendas: EmendaDetalhe[];
+}
+
 /** Perfil completo (data/parlamentares/{slug}.json). */
 export interface Parlamentar extends ParlamentarResumo {
   nomeCivil: string;
@@ -161,6 +216,8 @@ export interface Parlamentar extends ParlamentarResumo {
   gastos: Gastos;
   emendas: EmendaResumo[];
   eleicao: EleicaoResumo | null;
+  /** Só durante a coleta: vai para public/data/detalhes/{slug}.json, não para o perfil. */
+  detalhes?: DetalhesParlamentar;
 }
 
 export interface EleicaoResumo {

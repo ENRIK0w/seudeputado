@@ -11,17 +11,17 @@ const rotuloMes = (m: string) => `${MESES[Number(m.slice(5, 7)) - 1]}/${m.slice(
  * Gasto mensal da cota: uma coluna por mês. Passando o mouse ou o dedo, a coluna
  * em foco se destaca e um balão mostra o mês e o valor exato.
  */
-export function GraficoMensal({ meses }: { meses: Gastos["porMes"] }) {
+export function GraficoMensal({ meses, aoEscolher }: { meses: Gastos["porMes"]; aoEscolher?: (mes: string) => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const [foco, setFoco] = useState<number | null>(null);
   const max = Math.max(...meses.map((m) => m.total), 1);
   const w = 100 / meses.length;
 
-  const focar = (clientX: number) => {
+  const indice = (clientX: number) => {
     const r = ref.current!.getBoundingClientRect();
-    const i = Math.floor(((clientX - r.left) / r.width) * meses.length);
-    setFoco(Math.max(0, Math.min(meses.length - 1, i)));
+    return Math.max(0, Math.min(meses.length - 1, Math.floor(((clientX - r.left) / r.width) * meses.length)));
   };
+  const focar = (clientX: number) => setFoco(indice(clientX));
 
   const m = foco != null ? meses[foco] : null;
   const xFoco = foco != null ? (foco + 0.5) * w : 0;
@@ -35,10 +35,11 @@ export function GraficoMensal({ meses }: { meses: Gastos["porMes"] }) {
       <div
         ref={ref}
         className="relative touch-pan-y select-none"
-        style={{ paddingTop: ESPACO }}
         onPointerMove={(e) => focar(e.clientX)}
         onPointerDown={(e) => focar(e.clientX)}
         onPointerLeave={(e) => e.pointerType === "mouse" && setFoco(null)}
+        onClick={(e) => aoEscolher?.(meses[indice(e.clientX)].mes)}
+        style={{ paddingTop: ESPACO, cursor: aoEscolher ? "pointer" : undefined }}
       >
         <svg viewBox="0 0 100 32" preserveAspectRatio="none" className="w-full" style={{ height: ALTURA }} data-animar role="img" aria-label="Gasto mensal da cota parlamentar">
           {meses.map((mes, i) => {
@@ -69,6 +70,7 @@ export function GraficoMensal({ meses }: { meses: Gastos["porMes"] }) {
           >
             <div className="text-xs text-muted">{rotuloMes(m.mes)}</div>
             <div className="font-medium text-ink tabular-nums">{reaisExato(m.total)}</div>
+            {aoEscolher && <div className="text-[11px] text-muted">toque para detalhes</div>}
           </div>
         )}
       </div>

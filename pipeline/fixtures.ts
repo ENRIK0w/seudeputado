@@ -5,7 +5,7 @@ import type {
   EventoAgenda,
   Casa,
   EleicaoMapa,
-  EmendaResumo,
+  EmendaDetalhe,
   MunicipioDados,
   Parlamentar,
   ProposicaoResumo,
@@ -18,7 +18,7 @@ import { espectroDe } from "../src/lib/partidos";
 import { encontrarCitacoes, urlLexml } from "../src/lib/referencias";
 import { calcularMetricas } from "./metricas";
 import { gravarDataset } from "./output";
-import { agregarGastos, type Despesa } from "./sources/gastos";
+import { agregarGastos, detalharGastos, type Despesa } from "./sources/gastos";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -160,7 +160,18 @@ function main() {
       const mes = new Date(Date.UTC(2023, 1 + m, 1)).toISOString().slice(0, 7);
       for (let k = 0; k < int(2, 8); k++) {
         const fornecedor = `Fornecedor Exemplo ${int(1, 40)} Ltda`;
-        despesas.push({ categoria: pick(CATEGORIAS), fornecedor, documento: fornecedor, mes, valor: int(200, 9000) });
+        const categoria = pick(CATEGORIAS);
+        const aereo = /AÉREA/.test(categoria);
+        despesas.push({
+          categoria,
+          fornecedor,
+          documento: fornecedor,
+          mes,
+          valor: int(200, 9000),
+          data: `${mes}-${String(int(1, 28)).padStart(2, "0")}`,
+          descricao: aereo ? `${pick(["BSB/GRU", "GRU/BSB", "BSB/GIG", "CNF/BSB"])} · passageiro: assessor de exemplo` : null,
+          url: "#",
+        });
       }
     }
 
@@ -170,7 +181,7 @@ function main() {
     const reduto = rnd() < 0.25 ? capital : pick(municipios);
     const proximos = [...municipios].sort((a, b) => distancia(a, reduto) - distancia(b, reduto)).slice(0, 30);
     const maiores = [...municipios].sort((a, b) => b.eleitores - a.eleitores).slice(0, 8);
-    const emendas: EmendaResumo[] = Array.from({ length: int(4, 30) }, (_, k) => {
+    const emendas: EmendaDetalhe[] = Array.from({ length: int(4, 30) }, (_, k) => {
       const r = rnd();
       const mun = r < 0.55 ? pick(proximos) : r < 0.85 ? pick(maiores) : pick(municipios);
       const empenhado = int(100, 3000) * 1000;
@@ -184,6 +195,12 @@ function main() {
         funcao: pick(FUNCOES),
         empenhado,
         pago: Math.round(empenhado * rnd()),
+        codigo: `${int(2023, 2026)}${int(10000000, 99999999)}`,
+        localidade: `${mun.nome} - ${uf}`,
+        subfuncao: "Atenção básica (exemplo)",
+        programa: "Programa de exemplo",
+        acao: "Incremento temporário ao custeio dos serviços (exemplo)",
+        liquidado: Math.round(empenhado * 0.8),
       };
     });
 
@@ -223,6 +240,7 @@ function main() {
       proposicoes: proposicoes.sort((a, b) => b.data.localeCompare(a.data)),
       gastos: agregarGastos(despesas),
       emendas: emendas.sort((a, b) => b.pago - a.pago),
+      detalhes: { ...detalharGastos(despesas), emendas },
       eleicao: {
         ano: mapa.ano,
         cargo: casa === "senado" ? "Senador" : "Deputado Federal",

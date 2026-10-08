@@ -66,7 +66,12 @@ async function main() {
   if (!args.has("--sem-emendas")) {
     const emendas = await opcional("Emendas", () => coletarEmendas(parlamentares));
     if (emendas) {
-      for (const p of parlamentares) p.emendas = (emendas[p.slug] ?? []).sort((a, b) => b.pago - a.pago);
+      for (const p of parlamentares) {
+        const lista = (emendas[p.slug] ?? []).sort((a, b) => b.pago - a.pago);
+        // O perfil leva o resumo; os detalhes (programa, ação…) vão para o arquivo das folhas
+        p.emendas = lista.map(({ ano, numero, tipo, municipio, uf, ibge, funcao, empenhado, pago }) => ({ ano, numero, tipo, municipio, uf, ibge, funcao, empenhado, pago }));
+        if (p.detalhes) p.detalhes.emendas = lista;
+      }
       fontes.push({ nome: "Portal da Transparência — Emendas", url: "https://portaldatransparencia.gov.br/emendas", atualizadoEm: hoje });
     }
   }

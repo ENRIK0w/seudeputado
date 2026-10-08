@@ -98,4 +98,13 @@ export function chaveProposicao(sigla: string | null | undefined): string | null
   return m ? `${m[1]} ${Number(m[2].replace(/\./g, ""))}/${m[3]}` : null;
 }
 
+/** "Hospedagem ,exceto do parlamentar no distrito federal." → "Hospedagem, exceto do parlamentar no Distrito Federal" */
+export const nomeCategoria = (s: string) =>
+  s
+    .replace(/\.$/, "")
+    .replace(/\s+,\s*/g, ", ")
+    .replace(/\s+-\s+/g, " – ")
+    .replace(/distrito federal/i, "Distrito Federal")
+    .replace(/\bsigepa\b/i, "SIGEPA");
+
 export const UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];

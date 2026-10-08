@@ -417,6 +417,8 @@ button.pilula[data-ativa="true"]:not(.com-indicador) {
   border-radius: 28px 28px 0 0;
   padding-bottom: env(safe-area-inset-bottom);
   animation: folha-sobe 460ms var(--mola) both;
+  /* Mais opaca que as barras: é para ler texto longo */
+  background: color-mix(in srgb, var(--card) 90%, transparent);
 }
 @media (min-width: 640px) {
   .folha {
@@ -435,22 +437,32 @@ button.pilula[data-ativa="true"]:not(.com-indicador) {
   }
 }
 
-/* Faixa de dias que desliza para o lado */
-.faixa-dias {
+/* Faixa que rola para o lado (RolagemHorizontal): some a borda do lado que ainda tem conteúdo */
+.rolagem-faixa {
   display: flex;
-  gap: 4px;
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
   scrollbar-width: none;
-  -webkit-mask: linear-gradient(90deg, #000 86%, transparent);
-  mask: linear-gradient(90deg, #000 86%, transparent);
+  overscroll-behavior-x: contain;
 }
-.faixa-dias::-webkit-scrollbar {
+.rolagem-faixa::-webkit-scrollbar {
   display: none;
 }
-.faixa-dias > * {
-  scroll-snap-align: start;
+.rolagem-faixa > * {
   flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+.rolagem-faixa[data-dir] {
+  -webkit-mask: linear-gradient(90deg, #000 85%, transparent);
+  mask: linear-gradient(90deg, #000 85%, transparent);
+}
+.rolagem-faixa[data-esq] {
+  -webkit-mask: linear-gradient(90deg, transparent, #000 15%);
+  mask: linear-gradient(90deg, transparent, #000 15%);
+}
+.rolagem-faixa[data-esq][data-dir] {
+  -webkit-mask: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
 }
 
 /* Celular: cantos mais generosos */

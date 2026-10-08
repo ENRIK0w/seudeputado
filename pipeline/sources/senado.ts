@@ -6,7 +6,7 @@ import { download, emParalelo, getJson, HttpError } from "../lib/http";
 import { acrescentar, anosDaLegislatura, arr, cacheDoAno, campo, dataISO, lerCsv, normalizarNome, numeroBR } from "../lib/util";
 import { limparDescricao } from "../../src/lib/formato";
 import { metricasVazias, type ColetaCasa } from "./comum";
-import { agregarGastos, type Despesa } from "./gastos";
+import { agregarGastos, detalharGastos, type Despesa } from "./gastos";
 
 const API = "https://legis.senado.leg.br/dadosabertos";
 const INICIO_LEGISLATURA = "2023-02-01";
@@ -257,6 +257,9 @@ export async function coletarSenado(): Promise<ColetaCasa> {
           documento: r.CNPJ_CPF,
           mes: `${r.ANO}-${String(r.MES).padStart(2, "0")}`,
           valor: numeroBR(r.VALOR_REEMBOLSADO),
+          data: dataISO(r.DATA),
+          descricao: [r.DETALHAMENTO, r.DOCUMENTO && `documento ${r.DOCUMENTO}`].filter(Boolean).join(" · ") || null,
+          url: null,
         });
       }
     } catch (e) {
@@ -289,6 +292,7 @@ export async function coletarSenado(): Promise<ColetaCasa> {
       votosRecentes: [],
       proposicoes: proposicoes.sort((a, b) => b.data.localeCompare(a.data)),
       gastos: agregarGastos(despesasPorSlug[slug] ?? []),
+      detalhes: { ...detalharGastos(despesasPorSlug[slug] ?? []), emendas: [] },
       emendas: [],
       eleicao: null,
     };

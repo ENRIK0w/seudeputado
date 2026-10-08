@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { numero, reais, reaisCompacto } from "@/lib/formato";
 import type { EmendaResumo } from "@/lib/types";
 import { Contador } from "../Contador";
+import { FolhaDestino } from "./Detalhes";
 import { ListaComMais } from "../ListaComMais";
+import { RolagemHorizontal } from "../RolagemHorizontal";
 import { Barra, Metrica, Vazio } from "../ui";
 
 type Soma = { pago: number; empenhado: number; n: number };
@@ -25,8 +27,10 @@ function agrupar(emendas: EmendaResumo[], chave: (e: EmendaResumo) => string) {
 const destino = (e: EmendaResumo) => (e.municipio ? `${e.municipio}${e.uf ? ` · ${e.uf}` : ""}` : (e.uf ?? "Nacional"));
 
 /** Emendas do parlamentar com filtro por área: totais, gráfico por ano e destinos acompanham a área escolhida. */
-export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
+export function Emendas({ emendas, slug }: { emendas: EmendaResumo[]; slug: string }) {
   const [area, setArea] = useState<string | null>(null);
+  const [destinoAberto, setDestinoAberto] = useState<string | null>(null);
+  const fechar = useCallback(() => setDestinoAberto(null), []);
   const porFuncao = useMemo(() => agrupar(emendas, (e) => e.funcao || "Outros"), [emendas]);
   const anos = useMemo(() => [...new Set(emendas.map((e) => String(e.ano)))].sort(), [emendas]);
   const filtradas = useMemo(() => (area ? emendas.filter((e) => (e.funcao || "Outros") === area) : emendas), [emendas, area]);
@@ -46,7 +50,7 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
     <div className="space-y-6">
       <div>
         <h3 className="rotulo mb-2.5">Área</h3>
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+        <RolagemHorizontal className="-mx-1 gap-2 px-1 pb-1" rotulo="Filtrar por área">
           <button onClick={() => setArea(null)} className="chip pressionavel shrink-0" data-ativo={area === null}>
             Todas
           </button>
@@ -55,7 +59,7 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
               {f} <span className="opacity-70">{reaisCompacto(v.empenhado)}</span>
             </button>
           ))}
-        </div>
+        </RolagemHorizontal>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -96,25 +100,39 @@ export function Emendas({ emendas }: { emendas: EmendaResumo[] }) {
       </div>
 
       <div>
-        <h3 className="rotulo mb-3">Para onde foi</h3>
+        <h3 className="rotulo mb-2">Para onde foi</h3>
         {/* key: ao trocar a área a lista volta aos primeiros destinos */}
         <ListaComMais
           key={area ?? "todas"}
-          className="space-y-2.5"
+          className="space-y-1"
           rotulo="destinos"
           itens={porMunicipio.map(([nome, v], i) => (
             <li key={nome}>
-              <div className="mb-1 flex justify-between gap-3 text-sm">
-                <span className="truncate text-ink-2">{nome}</span>
-                <span className="shrink-0 text-ink" title={`Pago: ${reais(v.pago)}`}>
-                  {reaisCompacto(v.empenhado)}
+              <button
+                onClick={() => setDestinoAberto(nome)}
+                aria-haspopup="dialog"
+                className="pressionavel group -mx-2 block w-[calc(100%+1rem)] rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-card-2"
+              >
+                <span className="mb-1 flex justify-between gap-3 text-sm">
+                  <span className="truncate text-ink-2 group-hover:text-ink">{nome}</span>
+                  <span className="shrink-0 text-ink" title={`Pago: ${reais(v.pago)}`}>
+                    {reaisCompacto(v.empenhado)} <span className="text-muted">›</span>
+                  </span>
                 </span>
-              </div>
-              <Barra valor={v.empenhado / maxMun} indice={i} />
+                <Barra valor={v.empenhado / maxMun} indice={i} />
+              </button>
             </li>
           ))}
         />
       </div>
+      {destinoAberto && (
+        <FolhaDestino
+          slug={slug}
+          titulo={area ? `${destinoAberto} · ${area}` : destinoAberto}
+          filtro={(e) => destino(e) === destinoAberto && (!area || (e.funcao || "Outros") === area)}
+          fechar={fechar}
+        />
+      )}
     </div>
   );
 }
