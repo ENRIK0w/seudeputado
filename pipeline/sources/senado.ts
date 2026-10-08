@@ -55,6 +55,16 @@ interface VotoBruto {
 async function votacoesDoAno(ano: number): Promise<VotoBruto[]> {
   const dados = await getJson<unknown>(`${API}/votacao?ano=${ano}`, { maxIdadeHoras: cacheDoAno(ano) });
   const lista = Array.isArray(dados) ? dados : arr(campo(campo(dados, "ListaVotacoes"), "Votacoes"));
+  // Diagnóstico: o que veio do Senado neste ano (ajuda a achar votações que não entram)
+  const secretas = lista.filter((v) => normalizarNome(String(campo(v, "votacaoSecreta", "VotacaoSecreta") ?? "")) === "S").length;
+  const semVotos = lista.filter((v) => arr(campo<unknown[]>(v, "votos", "Votos")).length === 0).length;
+  const recentes = [...lista]
+    .map((v) => `${dataISO(String(campo(v, "dataSessao", "DataSessao")))} ${campo(v, "identificacao", "sigla") ?? "?"} (${arr(campo<unknown[]>(v, "votos", "Votos")).length} votos)`)
+    .sort()
+    .slice(-4);
+  console.log(`  · votacao?ano=${ano}: ${lista.length} votações (${secretas} secretas, ${semVotos} sem votos nominais); últimas: ${recentes.join(" | ")}`);
+  if (ano === new Date().getFullYear() && lista[0]) console.log(`  · exemplo bruto: ${JSON.stringify(lista.at(-1)).slice(0, 500)}`);
+
   const out: VotoBruto[] = [];
   for (const v of lista) {
     if (normalizarNome(String(campo(v, "votacaoSecreta", "VotacaoSecreta") ?? "")) === "S") continue;
