@@ -3,7 +3,7 @@
 // listas que viram objeto quando têm um item só (por isso `arr` e `campo`).
 import type { Parlamentar, PeriodoPartido, ProposicaoResumo, Votacao, VotoParlamentar, VotoTipo } from "../../src/lib/types";
 import { download, emParalelo, getJson, HttpError } from "../lib/http";
-import { acrescentar, anosDaLegislatura, arr, campo, dataISO, lerCsv, normalizarNome, numeroBR } from "../lib/util";
+import { acrescentar, anosDaLegislatura, arr, cacheDoAno, campo, dataISO, lerCsv, normalizarNome, numeroBR } from "../lib/util";
 import { limparDescricao } from "../../src/lib/formato";
 import { metricasVazias, type ColetaCasa } from "./comum";
 import { agregarGastos, type Despesa } from "./gastos";
@@ -53,7 +53,7 @@ interface VotoBruto {
 
 /** Endpoint novo: todas as votações do ano com os votos de cada senador. */
 async function votacoesDoAno(ano: number): Promise<VotoBruto[]> {
-  const dados = await getJson<unknown>(`${API}/votacao?ano=${ano}`);
+  const dados = await getJson<unknown>(`${API}/votacao?ano=${ano}`, { maxIdadeHoras: cacheDoAno(ano) });
   const lista = Array.isArray(dados) ? dados : arr(campo(campo(dados, "ListaVotacoes"), "Votacoes"));
   const out: VotoBruto[] = [];
   for (const v of lista) {
@@ -79,7 +79,7 @@ async function votacoesDoAno(ano: number): Promise<VotoBruto[]> {
 
 /** Endpoint antigo, por senador — usado se o novo falhar. */
 async function votacoesDoSenador(cod: string, ano: number): Promise<VotoBruto[]> {
-  const json = await getJson<unknown>(`${API}/senador/${cod}/votacoes.json?ano=${ano}`);
+  const json = await getJson<unknown>(`${API}/senador/${cod}/votacoes.json?ano=${ano}`, { maxIdadeHoras: cacheDoAno(ano) });
   const lista = arr(campo(campo(campo(campo(json, "VotacaoParlamentar"), "Parlamentar"), "Votacoes"), "Votacao"));
   return lista
     .filter((v) => campo(v, "IndicadorVotacaoSecreta") !== "Sim")
@@ -236,7 +236,7 @@ export async function coletarSenado(): Promise<ColetaCasa> {
   const despesasPorSlug: Record<string, Despesa[]> = {};
   for (const ano of anos) {
     try {
-      const file = await download(`https://www.senado.leg.br/transparencia/LAI/verba/despesa_ceaps_${ano}.csv`);
+      const file = await download(`https://www.senado.leg.br/transparencia/LAI/verba/despesa_ceaps_${ano}.csv`, { maxIdadeHoras: cacheDoAno(ano) });
       const { readFileSync } = await import("node:fs");
       for (const r of lerCsv(readFileSync(file), { encoding: "latin1", pularLinhas: 1 })) {
         const slug = slugPorNome.get(normalizarNome(r.SENADOR ?? ""));

@@ -93,6 +93,12 @@ export function arr<T>(x: T | T[] | null | undefined): T[] {
   return Array.isArray(x) ? x : [x];
 }
 
+/**
+ * Validade do cache (horas) para dados de um ano: o ano corrente muda todo dia
+ * (votação de ontem precisa entrar hoje); anos passados quase não mudam.
+ */
+export const cacheDoAno = (ano: number) => (ano >= new Date().getFullYear() ? 2 : 24 * 30);
+
 export function anosDaLegislatura(inicio = 2023): number[] {
   const atual = new Date().getFullYear();
   const anos: number[] = [];

@@ -8,7 +8,7 @@ import type {
   VotoTipo,
 } from "../../src/lib/types";
 import { download, emParalelo, getJson } from "../lib/http";
-import { acrescentar, anosDaLegislatura, dataISO, lerCsv, lerZip, mapearVoto, normalizarNome, numeroBR, somenteDigitos } from "../lib/util";
+import { acrescentar, anosDaLegislatura, cacheDoAno, dataISO, lerCsv, lerZip, mapearVoto, normalizarNome, numeroBR, somenteDigitos } from "../lib/util";
 import { agregarGastos, type Despesa } from "./gastos";
 import { limparDescricao } from "../../src/lib/formato";
 import { buscarOrientacao, metricasVazias, type ColetaCasa } from "./comum";
@@ -79,7 +79,7 @@ const jaMostrado = new Set<string>();
 
 async function arquivoAnual<T>(tipo: string, ano: number): Promise<T[]> {
   try {
-    const json = await getJson<{ dados: T[] }>(`${ARQ}/${tipo}/json/${tipo}-${ano}.json`);
+    const json = await getJson<{ dados: T[] }>(`${ARQ}/${tipo}/json/${tipo}-${ano}.json`, { maxIdadeHoras: cacheDoAno(ano) });
     const dados = json.dados ?? [];
     // Mostra a estrutura uma vez por tipo de arquivo — ajuda a ajustar se a Câmara mudar os campos.
     if (!jaMostrado.has(tipo) && dados.length) {
@@ -375,7 +375,7 @@ export async function coletarCamara(): Promise<ColetaCasa> {
   const slugPorCpf = new Map(detalhes.map((d) => [somenteDigitos(d.det.cpf), slugDe(d.lista.id)]));
   for (const ano of anos) {
     try {
-      const zip = await download(`https://www.camara.leg.br/cotas/Ano-${ano}.csv.zip`);
+      const zip = await download(`https://www.camara.leg.br/cotas/Ano-${ano}.csv.zip`, { maxIdadeHoras: cacheDoAno(ano) });
       for (const conteudo of Object.values(lerZip(zip, (n) => n.endsWith(".csv")))) {
         for (const r of lerCsv(conteudo)) {
           const slug = r.ideCadastro ? slugDe(r.ideCadastro) : slugPorCpf.get(somenteDigitos(r.cpf));
