@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       modo:
-        description: "rapida = Câmara + Senado (TSE salvo); completa = + emendas e baixa o TSE de novo (demorada)"
+        description: "rapida = Câmara + Senado (TSE salvo); completa = + emendas e baixa o TSE de novo (demorada); comprovantes = só testa os links de comprovante da cota"
         type: choice
-        options: [rapida, completa]
+        options: [rapida, completa, comprovantes]
         default: rapida
 
 jobs:
@@ -34,7 +34,12 @@ jobs:
             coleta-${{ inputs.modo }}-
             coleta-
 
+      - name: Diagnóstico dos comprovantes
+        if: inputs.modo == 'comprovantes'
+        run: npx tsx pipeline/diagnostico/comprovantes.ts
+
       - name: Coletar dados oficiais
+        if: inputs.modo != 'comprovantes'
         run: |
           set -o pipefail
           FLAGS=""
@@ -42,14 +47,14 @@ jobs:
           npm run dados -- $FLAGS 2>&1 | tee coleta.log
 
       - name: Conferir resultados
-        if: always()
+        if: always() && inputs.modo != 'comprovantes'
         run: |
           npx tsx pipeline/relatorio.ts relatorio.md || STATUS=$?
           cat relatorio.md >> "$GITHUB_STEP_SUMMARY"
           exit ${STATUS:-0}
 
       - name: Gerar o site com os dados reais
-        if: success()
+        if: success() && inputs.modo != 'comprovantes'
         run: |
           npx next typegen
           npm run build
