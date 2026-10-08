@@ -4,8 +4,11 @@ name: Atualizar dados e publicar
 # confere os resultados e, se não houver erro, publica na Vercel.
 # Precisa dos segredos VERCEL_TOKEN, VERCEL_ORG_ID e VERCEL_PROJECT_ID (veja o README).
 on:
+  # O GitHub às vezes atrasa ou pula execuções agendadas (servidores ocupados).
+  # O segundo horário é uma reserva: rodar duas vezes no mesmo dia não faz mal.
   schedule:
     - cron: "17 6 * * *" # 03:17 de Brasília
+    - cron: "43 11 * * *" # 08:43 de Brasília (reserva)
   workflow_dispatch:
 
 permissions:
